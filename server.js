@@ -210,31 +210,27 @@ app.get('/api/halloffame', async (req, res) => {
   }
 });
 
-const mimeTypes = {
-  '.html': 'text/html',
-  '.css': 'text/css',
-  '.js': 'application/javascript',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-  '.json': 'application/json'
-};
+app.use(express.static(path.join(__dirname), {
+  index: 'index.html',
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 app.use((req, res) => {
-  let urlPath = req.url.split('?')[0];
-  if (urlPath === '/') urlPath = '/index.html';
-  const filePath = path.join(__dirname, decodeURIComponent(urlPath));
+  const filePath = path.join(__dirname, decodeURIComponent(req.url.split('?')[0]));
   fs.readFile(filePath, (err, data) => {
-    if (err) { res.status(404).send('404 Not Found'); return; }
-    const ext = path.extname(filePath);
-    res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-    res.send(data);
+    if (err) { res.status(404).sendFile(path.join(__dirname, 'index.html')); return; }
+    res.sendFile(filePath);
   });
 });
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server running at http://${HOST}:${PORT}/`);
-});
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running at http://${HOST}:${PORT}/`);
+  });
+}
