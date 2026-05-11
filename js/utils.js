@@ -15,10 +15,12 @@ async function apiCall(method, endpoint, data, token) {
     return null;
   }
 }
+
 const StorageManager = {
   getToken() {
     return localStorage.getItem('uxplore_token');
   },
+
   setToken(token) {
     localStorage.setItem('uxplore_token', token);
   },
@@ -45,7 +47,6 @@ const StorageManager = {
     return users.some(u => u.username.toLowerCase() === username.toLowerCase());
   },
 
-
   async registerUser(username, password) {
     const result = await apiCall('POST', '/auth/register', { username, password });
     if (result && result.success) {
@@ -60,14 +61,34 @@ const StorageManager = {
   },
 
   async loginUser(username, password) {
+    const existingLocalProfile = this.getProfile();
     const result = await apiCall('POST', '/auth/login', { username, password });
     if (result && result.success) {
       this.setToken(result.token);
       this.setUser(result.user);
-      if (result.profile) {
-        this._storeProfileLocally(result.user, result.profile);
+      let finalProfile = result.profile;
+      if (result.profile && existingLocalProfile && existingLocalProfile.levelProgress) {
+        const serverLP = result.profile.levelProgress || {};
+        const localLP = existingLocalProfile.levelProgress || {};
+        const mergedLP = { ...serverLP };
+        Object.keys(localLP).forEach(lvl => {
+          const local = localLP[lvl];
+          const server = serverLP[lvl] || { completed: false, score: 0 };
+          if (local.completed && (!server.completed || local.score > server.score)) {
+            mergedLP[lvl] = local;
+          }
+        });
+        finalProfile = { ...result.profile, levelProgress: mergedLP };
+        apiCall('POST', '/profile', {
+          gameUsername: finalProfile.gameUsername,
+          avatar: finalProfile.avatar,
+          levelProgress: mergedLP
+        }, result.token).catch(() => {});
       }
-      return { success: true, user: result.user, profile: result.profile };
+      if (finalProfile) {
+        this._storeProfileLocally(result.user, finalProfile);
+      }
+      return { success: true, user: result.user, profile: finalProfile };
     }
     return { success: false, error: result?.error || 'Login failed' };
   },
@@ -141,7 +162,14 @@ const StorageManager = {
 
     const token = this.getToken();
     if (token) {
-      apiCall('POST', `/progress/${levelId}`, { score }, token).catch(() => {});
+      apiCall('POST', `/progress/${levelId}`, { score }, token).then(result => {
+        if (result && result.success && result.profile) {
+          const user = this.getUser();
+          if (user) this._storeProfileLocally(user, result.profile);
+        } else {
+          console.warn('Progress save to server may have failed:', result);
+        }
+      }).catch(err => console.warn('Progress save error:', err));
     }
   },
 
@@ -201,9 +229,30 @@ const StorageManager = {
     const token = this.getToken();
     const user = this.getUser();
     if (!token || !user) return;
+    const localProfile = this.getProfile();
     const result = await apiCall('GET', '/profile', null, token);
     if (result && result.profile) {
-      this._storeProfileLocally(user, result.profile);
+      const serverLP = result.profile.levelProgress || {};
+      const localLP = (localProfile && localProfile.levelProgress) || {};
+      const mergedLP = { ...serverLP };
+      let hasLocalBetter = false;
+      Object.keys(localLP).forEach(lvl => {
+        const local = localLP[lvl];
+        const server = serverLP[lvl] || { completed: false, score: 0 };
+        if (local.completed && (!server.completed || local.score > server.score)) {
+          mergedLP[lvl] = local;
+          hasLocalBetter = true;
+        }
+      });
+      const merged = { ...result.profile, levelProgress: mergedLP };
+      this._storeProfileLocally(user, merged);
+      if (hasLocalBetter) {
+        apiCall('POST', '/profile', {
+          gameUsername: merged.gameUsername,
+          avatar: merged.avatar,
+          levelProgress: mergedLP
+        }, token).catch(() => {});
+      }
     }
   }
 };

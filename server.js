@@ -72,6 +72,18 @@ app.post('/api/auth/register', async (req, res) => {
     if (exists) return res.status(400).json({ error: 'Username already exists' });
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ username, password: hashed });
+    await Profile.create({
+      userId: user._id,
+      gameUsername: username,
+      avatar: '👾',
+      levelProgress: {
+        level1: { completed: false, score: 0 },
+        level2: { completed: false, score: 0 },
+        level3: { completed: false, score: 0 },
+        level4: { completed: false, score: 0 },
+        level5: { completed: false, score: 0 }
+      }
+    });
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, user: { id: user._id, username: user.username }, token });
   } catch (err) {
@@ -87,7 +99,21 @@ app.post('/api/auth/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ error: 'Invalid username or password' });
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
-    const profile = await Profile.findOne({ userId: user._id });
+    let profile = await Profile.findOne({ userId: user._id });
+    if (!profile) {
+      profile = await Profile.create({
+        userId: user._id,
+        gameUsername: user.username,
+        avatar: '👾',
+        levelProgress: {
+          level1: { completed: false, score: 0 },
+          level2: { completed: false, score: 0 },
+          level3: { completed: false, score: 0 },
+          level4: { completed: false, score: 0 },
+          level5: { completed: false, score: 0 }
+        }
+      });
+    }
     res.json({
       success: true,
       user: { id: user._id, username: user.username },
@@ -175,13 +201,28 @@ app.post('/api/progress/:levelId', authMiddleware, async (req, res) => {
     const { score } = req.body;
     const valid = ['level1', 'level2', 'level3', 'level4', 'level5'];
     if (!valid.includes(levelId)) return res.status(400).json({ error: 'Invalid level' });
-    const update = {};
-    update[`levelProgress.${levelId}.completed`] = true;
-    update[`levelProgress.${levelId}.score`] = score;
+    const update = { $set: {} };
+    update.$set[`levelProgress.${levelId}.completed`] = true;
+    update.$set[`levelProgress.${levelId}.score`] = score;
+    const defaultProgress = {
+      level1: { completed: false, score: 0 },
+      level2: { completed: false, score: 0 },
+      level3: { completed: false, score: 0 },
+      level4: { completed: false, score: 0 },
+      level5: { completed: false, score: 0 }
+    };
+    defaultProgress[levelId] = { completed: true, score };
     const profile = await Profile.findOneAndUpdate(
       { userId: req.user.id },
-      { $set: update },
-      { new: true }
+      {
+        ...update,
+        $setOnInsert: {
+          gameUsername: req.user.username || 'Player',
+          avatar: '👾',
+          levelProgress: defaultProgress
+        }
+      },
+      { new: true, upsert: true }
     );
     res.json({ success: true, profile: formatProfile(profile) });
   } catch (err) {
