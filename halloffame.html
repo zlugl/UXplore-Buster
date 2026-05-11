@@ -25,12 +25,8 @@
       </p>
     </div>
 
-    <!-- Rankings Table -->
-    <div id="rankings-container" style="margin-bottom: 40px;">
-      <!-- Rankings will be populated here -->
-    </div>
+    <div id="rankings-container" style="margin-bottom: 40px;"></div>
 
-    <!-- No Players Message -->
     <div id="no-players-message" style="display: none;">
       <div class="card" style="text-align: center;">
         <p style="color: var(--text-secondary); font-size: 16px; margin: 40px 0;">
@@ -46,7 +42,7 @@
     </div>
 
     <div style="text-align: center; margin-top: 40px; margin-bottom: 40px;">
-      <button class="btn btn-secondary" onclick="location.reload()" style="padding: 12px 30px; margin: 5px;">
+      <button class="btn btn-secondary" onclick="renderRankings()" style="padding: 12px 30px; margin: 5px;">
         🔄 REFRESH RANKINGS
       </button>
     </div>
@@ -54,12 +50,19 @@
 
   <script src="js/utils.js"></script>
   <script>
-    // Note: Hall of Fame is PUBLIC - no auth check needed, anyone can view rankings
-    
-    function renderRankings() {
-      const rankings = getRankings();
+    async function renderRankings() {
       const container = document.getElementById('rankings-container');
       const noPlayersMsg = document.getElementById('no-players-message');
+      container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:40px;">Loading rankings...</p>';
+
+      let rankings = [];
+      try {
+        const res = await fetch('/api/halloffame');
+        const data = await res.json();
+        rankings = (data.users || []).map((u, i) => ({ ...u, rank: i + 1 }));
+      } catch (e) {
+        rankings = getRankings();
+      }
 
       if (rankings.length === 0) {
         noPlayersMsg.style.display = 'block';
@@ -72,11 +75,18 @@
 
       rankings.forEach((player, index) => {
         const medalEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${player.rank}`;
-        const levelScores = player.levelScores;
+        const levelScores = player.levelScores || {};
 
         const scoreCard = document.createElement('div');
         scoreCard.className = 'card';
         scoreCard.style.marginBottom = '20px';
+
+        const avatarSrc = getAvatarPath(player.avatar);
+        const isImage = avatarSrc && /\.(png|jpg|gif)$/i.test(avatarSrc);
+        const avatarHTML = isImage
+          ? `<img src="${avatarSrc}" alt="Avatar" style="width:60px;height:60px;border-radius:8px;margin-right:12px;border:2px solid var(--accent-cyan);">`
+          : `<span style="font-size:40px;margin-right:12px;">${avatarSrc || '👾'}</span>`;
+
         scoreCard.innerHTML = `
           <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center;">
             <div style="text-align: center; font-size: 32px; font-weight: bold; color: var(--accent-cyan);">
@@ -84,7 +94,7 @@
             </div>
             <div>
               <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <img src="${getAvatarPath(player.avatar)}" alt="Avatar" style="width: 60px; height: 60px; border-radius: 8px; margin-right: 12px; border: 2px solid var(--accent-cyan);">
+                ${avatarHTML}
                 <div>
                   <p style="font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin: 0;">
                     ${player.gameUsername}
@@ -96,7 +106,7 @@
               </div>
               <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px;">
                 ${['level1', 'level2', 'level3', 'level4', 'level5'].map((level, i) => {
-                  const score = levelScores[level];
+                  const score = levelScores[level] || { completed: false, score: 0 };
                   const isCompleted = score.completed;
                   const color = isCompleted ? 'var(--success)' : 'var(--text-secondary)';
                   const bgColor = isCompleted ? 'rgba(0, 255, 136, 0.1)' : 'rgba(160, 160, 192, 0.1)';
@@ -125,7 +135,6 @@
       });
     }
 
-    // Render rankings on page load
     renderRankings();
   </script>
   

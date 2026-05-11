@@ -1,5 +1,32 @@
-// Local Storage Management
+const API_BASE = '/api';
+
+async function apiCall(method, endpoint, data, token) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(API_BASE + endpoint, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn('API call failed:', endpoint, err.message);
+    return null;
+  }
+}
 const StorageManager = {
+  getToken() {
+    return localStorage.getItem('uxplore_token');
+  },
+  setToken(token) {
+    localStorage.setItem('uxplore_token', token);
+  },
+
+  removeToken() {
+    localStorage.removeItem('uxplore_token');
+  },
+
   getUser() {
     const user = localStorage.getItem('uxplore_user');
     return user ? JSON.parse(user) : null;
@@ -18,26 +45,39 @@ const StorageManager = {
     return users.some(u => u.username.toLowerCase() === username.toLowerCase());
   },
 
-  registerUser(username, password) {
-    const users = JSON.parse(localStorage.getItem('uxplore_users') || '[]');
-    const newUser = {
-      id: Date.now(),
-      username: username,
-      password: password,
-      createdAt: new Date().toISOString()
-    };
-    users.push(newUser);
-    localStorage.setItem('uxplore_users', JSON.stringify(users));
-    return newUser;
+
+  async registerUser(username, password) {
+    const result = await apiCall('POST', '/auth/register', { username, password });
+    if (result && result.success) {
+      this.setToken(result.token);
+      this.setUser(result.user);
+      const users = JSON.parse(localStorage.getItem('uxplore_users') || '[]');
+      users.push(result.user);
+      localStorage.setItem('uxplore_users', JSON.stringify(users));
+      return { success: true, user: result.user };
+    }
+    return { success: false, error: result?.error || 'Registration failed' };
   },
 
-  loginUser(username, password) {
-    const users = JSON.parse(localStorage.getItem('uxplore_users') || '[]');
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
-    return user || null;
+  async loginUser(username, password) {
+    const result = await apiCall('POST', '/auth/login', { username, password });
+    if (result && result.success) {
+      this.setToken(result.token);
+      this.setUser(result.user);
+      if (result.profile) {
+        this._storeProfileLocally(result.user, result.profile);
+      }
+      return { success: true, user: result.user, profile: result.profile };
+    }
+    return { success: false, error: result?.error || 'Login failed' };
   },
 
-  // Game profile
+  _storeProfileLocally(user, profile) {
+    const profiles = JSON.parse(localStorage.getItem('uxplore_profiles') || '{}');
+    profiles[`profile_${user.id}`] = profile;
+    localStorage.setItem('uxplore_profiles', JSON.stringify(profiles));
+  },
+
   getProfile() {
     const user = this.getUser();
     if (!user) return null;
@@ -51,35 +91,34 @@ const StorageManager = {
     const profiles = JSON.parse(localStorage.getItem('uxplore_profiles') || '{}');
     profiles[`profile_${user.id}`] = profileData;
     localStorage.setItem('uxplore_profiles', JSON.stringify(profiles));
+
+    const token = this.getToken();
+    if (token) {
+      apiCall('POST', '/profile', {
+        gameUsername: profileData.gameUsername,
+        avatar: profileData.avatar,
+        levelProgress: profileData.levelProgress
+      }, token).catch(() => {});
+    }
   },
 
-  // Level progress
   getLevelProgress() {
     const profile = this.getProfile();
-    if (!profile) {
-      return {
-        level1: { completed: false, score: 0 },
-        level2: { completed: false, score: 0 },
-        level3: { completed: false, score: 0 },
-        level4: { completed: false, score: 0 },
-        level5: { completed: false, score: 0 }
-      };
-    }
-    return profile.levelProgress || {
+    const defaultProgress = {
       level1: { completed: false, score: 0 },
       level2: { completed: false, score: 0 },
       level3: { completed: false, score: 0 },
       level4: { completed: false, score: 0 },
       level5: { completed: false, score: 0 }
     };
+    return profile?.levelProgress || defaultProgress;
   },
 
   setLevelProgress(progress) {
     let profile = this.getProfile();
+    const user = this.getUser();
+    const defaultUsername = user ? `Player ${user.id}` : `Player ${Date.now()}`;
     if (!profile) {
-      // Create a new profile if it doesn't exist
-      const user = this.getUser();
-      const defaultUsername = user ? `Player ${user.id}` : `Player ${Date.now()}`;
       profile = {
         gameUsername: defaultUsername,
         avatar: '👾',
@@ -99,24 +138,28 @@ const StorageManager = {
       progress[levelId].score = score;
     }
     this.setLevelProgress(progress);
+
+    const token = this.getToken();
+    if (token) {
+      apiCall('POST', `/progress/${levelId}`, { score }, token).catch(() => {});
+    }
   },
 
   isLevelUnlocked(levelId) {
     if (levelId === 'level1') return true;
-    
     const progress = this.getLevelProgress();
     const levelNum = parseInt(levelId.replace('level', ''));
     const prevLevel = `level${levelNum - 1}`;
-    
     return progress[prevLevel] && progress[prevLevel].completed;
   },
 
-  // Update profile functions
   updateAvatar(newAvatarPath) {
     const profile = this.getProfile();
     if (profile) {
       profile.avatar = newAvatarPath;
       this.setProfile(profile);
+      const token = this.getToken();
+      if (token) apiCall('PATCH', '/profile', { avatar: newAvatarPath }, token).catch(() => {});
       return true;
     }
     return false;
@@ -127,6 +170,8 @@ const StorageManager = {
     if (profile) {
       profile.gameUsername = newUsername;
       this.setProfile(profile);
+      const token = this.getToken();
+      if (token) apiCall('PATCH', '/profile', { gameUsername: newUsername }, token).catch(() => {});
       return true;
     }
     return false;
@@ -135,27 +180,34 @@ const StorageManager = {
   updateAccountUsername(newUsername) {
     const user = this.getUser();
     if (!user) return false;
-
-    // Check if new username already exists
     const users = JSON.parse(localStorage.getItem('uxplore_users') || '[]');
     if (users.some(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== user.id)) {
-      return false; // Username already taken
+      return false;
     }
-
-    // Update the user
     const userIndex = users.findIndex(u => u.id === user.id);
     if (userIndex !== -1) {
       users[userIndex].username = newUsername;
       localStorage.setItem('uxplore_users', JSON.stringify(users));
       user.username = newUsername;
       this.setUser(user);
+      const token = this.getToken();
+      if (token) apiCall('PATCH', '/auth/username', { username: newUsername }, token).catch(() => {});
       return true;
     }
     return false;
+  },
+
+  async syncFromServer() {
+    const token = this.getToken();
+    const user = this.getUser();
+    if (!token || !user) return;
+    const result = await apiCall('GET', '/profile', null, token);
+    if (result && result.profile) {
+      this._storeProfileLocally(user, result.profile);
+    }
   }
 };
 
-// Navigation
 function navigateTo(page) {
   const user = StorageManager.getUser();
   const profile = StorageManager.getProfile();
@@ -191,147 +243,105 @@ function navigateTo(page) {
   }
 }
 
-// Logout
 function logout() {
   StorageManager.removeUser();
+  StorageManager.removeToken();
   StorageManager.setProfile(null);
   window.location.href = 'index.html';
 }
 
-// Hall of Fame functions
-function getAllUsersWithScores() {
-  const allUsersData = [];
-  const profiles = JSON.parse(localStorage.getItem('uxplore_profiles') || '{}');
-
-  // Get all profiles directly (not just those matching users)
-  Object.keys(profiles).forEach(profileKey => {
-    const profile = profiles[profileKey];
-    
-    if (profile && profile.gameUsername) {
-      // Calculate total score
-      const levelProgress = profile.levelProgress || {
-        level1: { completed: false, score: 0 },
-        level2: { completed: false, score: 0 },
-        level3: { completed: false, score: 0 },
-        level4: { completed: false, score: 0 },
-        level5: { completed: false, score: 0 }
-      };
-
-      const totalScore = Object.values(levelProgress).reduce((sum, level) => {
-        return sum + (level.completed ? level.score : 0);
-      }, 0);
-
-      const completedLevels = Object.values(levelProgress).filter(l => l.completed).length;
-
-      allUsersData.push({
-        gameUsername: profile.gameUsername,
-        avatar: profile.avatar,
-        totalScore: totalScore,
-        completedLevels: completedLevels,
-        levelScores: levelProgress
-      });
-    }
-  });
-
-  // Sort by total score (highest first)
-  allUsersData.sort((a, b) => b.totalScore - a.totalScore);
-  return allUsersData;
-}
-
-// Get rankings with positions
-function getRankings() {
-  const users = getAllUsersWithScores();
-  return users.map((user, index) => ({
-    ...user,
-    rank: index + 1
-  }));
-}
-
-// Avatar path helper - returns correct path based on current location
-function getAvatarPath(avatarFilename) {
-  // If it's an emoji or already a full path, return as-is
-  if (!avatarFilename || avatarFilename.includes('/') || /\p{Emoji}/u.test(avatarFilename)) {
-    return avatarFilename;
-  }
-  
-  // Check if we're on a level page (inside levels/ directory)
-  const isLevelPage = window.location.pathname.includes('/levels/');
-  
-  // Return path with proper prefix for level pages
-  return isLevelPage ? '../' + avatarFilename : avatarFilename;
-}
-
-// Check authentication
 function checkAuth() {
   const user = StorageManager.getUser();
   if (!user) {
     window.location.href = 'login.html';
+    return null;
   }
+  StorageManager.syncFromServer();
   displayUserInfo();
   return user;
 }
 
-// Display user info
+function getAllUsersWithScores() {
+  const allUsersData = [];
+  const profiles = JSON.parse(localStorage.getItem('uxplore_profiles') || '{}');
+  Object.keys(profiles).forEach(profileKey => {
+    const profile = profiles[profileKey];
+    if (!profile?.gameUsername) return;
+    const levelProgress = profile.levelProgress || {
+      level1: { completed: false, score: 0 },
+      level2: { completed: false, score: 0 },
+      level3: { completed: false, score: 0 },
+      level4: { completed: false, score: 0 },
+      level5: { completed: false, score: 0 }
+    };
+    const totalScore = Object.values(levelProgress).reduce(
+      (sum, level) => sum + (level.completed ? level.score : 0), 0
+    );
+    const completedLevels = Object.values(levelProgress).filter(l => l.completed).length;
+    allUsersData.push({
+      gameUsername: profile.gameUsername,
+      avatar: profile.avatar,
+      totalScore,
+      completedLevels,
+      levelScores: levelProgress
+    });
+  });
+  return allUsersData.sort((a, b) => b.totalScore - a.totalScore);
+}
+
+function getRankings() {
+  return getAllUsersWithScores().map((user, index) => ({ ...user, rank: index + 1 }));
+}
+
+function getAvatarPath(avatarFilename) {
+  if (!avatarFilename || avatarFilename.includes('/') || /\p{Emoji}/u.test(avatarFilename)) {
+    return avatarFilename;
+  }
+  const isLevelPage = window.location.pathname.includes('/levels/');
+  return isLevelPage ? '../' + avatarFilename : avatarFilename;
+}
+
 function displayUserInfo() {
   const user = StorageManager.getUser();
   const profile = StorageManager.getProfile();
-  
-  if (user) {
-    const userElement = document.getElementById('user-info');
-    if (userElement) {
-      const displayName = profile ? profile.gameUsername : user.username;
-      const avatarFilename = profile ? profile.avatar : '👾';
-      
-      // Get correct avatar path based on current page location
-      const avatarPath = getAvatarPath(avatarFilename);
-      
-      // Check if it's a file path (contains filename with extension) or emoji
-      const isImageFile = avatarPath && (avatarPath.includes('.png') || avatarPath.includes('.jpg') || avatarPath.includes('.gif'));
-      const avatarHTML = isImageFile
-        ? `<img src="${avatarPath}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 4px; border: 1px solid var(--accent-cyan);">`
-        : `<span>${avatarPath}</span>`;
-      
-      userElement.innerHTML = `
-        <span style="margin-right: 0; display: flex; align-items: center; gap: 10px;">
-          <span style="cursor: pointer; display: flex; align-items: center;" onclick="openEditProfileModal()">
-            ${avatarHTML}
-            <span style="margin-right: 15px;">${displayName}</span>
-          </span>
-          <button class="btn" onclick="navigateTo('halloffame')" style="padding: 8px 15px; font-size: 12px; margin-right: 5px;">🏆</button>
-          <button class="btn" onclick="logout()" style="padding: 8px 15px; font-size: 12px;">Logout</button>
-        </span>
-      `;
-    }
-  }
+  if (!user) return;
+  const userElement = document.getElementById('user-info');
+  if (!userElement) return;
+  const displayName = profile?.gameUsername || user.username;
+  const avatarFilename = profile?.avatar || '👾';
+  const avatarPath = getAvatarPath(avatarFilename);
+  const isImageFile = avatarPath && /\.(png|jpg|gif)$/i.test(avatarPath);
+  const avatarHTML = isImageFile
+    ? `<img src="${avatarPath}" alt="Avatar" style="width:40px;height:40px;border-radius:4px;border:1px solid var(--accent-cyan);">`
+    : `<span>${avatarPath}</span>`;
+  userElement.innerHTML = `
+    <span style="display:flex;align-items:center;gap:10px;">
+      <span style="cursor:pointer;display:flex;align-items:center;" onclick="openEditProfileModal()">
+        ${avatarHTML}
+        <span style="margin:0 15px 0 5px;">${displayName}</span>
+      </span>
+      <button class="btn" onclick="navigateTo('halloffame')" style="padding:8px 15px;font-size:12px;margin-right:5px;">🏆</button>
+      <button class="btn" onclick="logout()" style="padding:8px 15px;font-size:12px;">Logout</button>
+    </span>
+  `;
 }
 
-// Edit Profile Modal Functions
 function openEditProfileModal() {
   const profile = StorageManager.getProfile();
   if (!profile) return;
-
   const modal = document.getElementById('edit-profile-modal') || createEditModal();
-  
-  // Populate form with current values
   document.getElementById('edit-username').value = profile.gameUsername || '';
   document.getElementById('edit-account-username').value = StorageManager.getUser().username || '';
-  
-  // Show current avatar selection
   document.querySelectorAll('.edit-avatar-option').forEach(option => {
     option.classList.remove('selected');
-    if (option.getAttribute('data-avatar') === profile.avatar) {
-      option.classList.add('selected');
-    }
+    if (option.getAttribute('data-avatar') === profile.avatar) option.classList.add('selected');
   });
-  
   modal.classList.add('active');
 }
 
 function createEditModal() {
-  // Check if modal already exists
   let modal = document.getElementById('edit-profile-modal');
   if (modal) return modal;
-
   modal = document.createElement('div');
   modal.id = 'edit-profile-modal';
   modal.className = 'modal';
@@ -341,113 +351,79 @@ function createEditModal() {
         <h2>Edit Profile</h2>
         <button class="modal-close" onclick="closeEditProfileModal()">×</button>
       </div>
-      
       <form onsubmit="saveProfileChanges(event)">
-        <!-- Game Username -->
         <div class="form-group">
           <label for="edit-username">Game Username</label>
           <input type="text" id="edit-username" placeholder="Enter your gaming name" required>
         </div>
-
-        <!-- Account Username -->
         <div class="form-group">
           <label for="edit-account-username">Account Username</label>
           <input type="text" id="edit-account-username" placeholder="Enter your account name" required>
         </div>
-
-        <!-- Avatar Selection -->
         <div class="form-group">
           <label>Select Avatar</label>
           <div class="avatar-grid">
-            <div class="edit-avatar-option" data-avatar="avatar-m.png" onclick="selectEditAvatar(this)" style="cursor: pointer;">
-              <img src="${getAvatarPath('avatar-m.png')}" alt="Male Avatar 1" style="width: 60px; height: 60px; border-radius: 4px;">
+            <div class="edit-avatar-option" data-avatar="avatar-m.png" onclick="selectEditAvatar(this)" style="cursor:pointer;">
+              <img src="${getAvatarPath('avatar-m.png')}" alt="Avatar 1" style="width:60px;height:60px;border-radius:4px;">
             </div>
-            <div class="edit-avatar-option" data-avatar="avatar-m2.png" onclick="selectEditAvatar(this)" style="cursor: pointer;">
-              <img src="${getAvatarPath('avatar-m2.png')}" alt="Male Avatar 2" style="width: 60px; height: 60px; border-radius: 4px;">
+            <div class="edit-avatar-option" data-avatar="avatar-m2.png" onclick="selectEditAvatar(this)" style="cursor:pointer;">
+              <img src="${getAvatarPath('avatar-m2.png')}" alt="Avatar 2" style="width:60px;height:60px;border-radius:4px;">
             </div>
-            <div class="edit-avatar-option" data-avatar="avatar-f.png" onclick="selectEditAvatar(this)" style="cursor: pointer;">
-              <img src="${getAvatarPath('avatar-f.png')}" alt="Female Avatar 1" style="width: 60px; height: 60px; border-radius: 4px;">
+            <div class="edit-avatar-option" data-avatar="avatar-f.png" onclick="selectEditAvatar(this)" style="cursor:pointer;">
+              <img src="${getAvatarPath('avatar-f.png')}" alt="Avatar 3" style="width:60px;height:60px;border-radius:4px;">
             </div>
-            <div class="edit-avatar-option" data-avatar="avatar-f2.png" onclick="selectEditAvatar(this)" style="cursor: pointer;">
-              <img src="${getAvatarPath('avatar-f2.png')}" alt="Female Avatar 2" style="width: 60px; height: 60px; border-radius: 4px;">
+            <div class="edit-avatar-option" data-avatar="avatar-f2.png" onclick="selectEditAvatar(this)" style="cursor:pointer;">
+              <img src="${getAvatarPath('avatar-f2.png')}" alt="Avatar 4" style="width:60px;height:60px;border-radius:4px;">
             </div>
           </div>
         </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
-          <button type="button" class="btn btn-secondary" onclick="closeEditProfileModal()" style="width: 100%; margin: 0;">Cancel</button>
-          <button type="submit" class="btn btn-primary" style="width: 100%; margin: 0;">Save Changes</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeEditProfileModal()" style="width:100%;margin:0;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width:100%;margin:0;">Save Changes</button>
         </div>
-
-        <p id="edit-message" style="text-align: center; margin-top: 15px; color: var(--success);"></p>
+        <p id="edit-message" style="text-align:center;margin-top:15px;color:var(--success);"></p>
       </form>
     </div>
   `;
-
   document.body.appendChild(modal);
-  
-  // Close modal when clicking outside
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      closeEditProfileModal();
-    }
-  });
-
+  modal.addEventListener('click', e => { if (e.target === modal) closeEditProfileModal(); });
   return modal;
 }
 
 function selectEditAvatar(element) {
-  document.querySelectorAll('.edit-avatar-option').forEach(opt => {
-    opt.classList.remove('selected');
-  });
+  document.querySelectorAll('.edit-avatar-option').forEach(opt => opt.classList.remove('selected'));
   element.classList.add('selected');
 }
 
 function closeEditProfileModal() {
   const modal = document.getElementById('edit-profile-modal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
+  if (modal) modal.classList.remove('active');
 }
 
 function saveProfileChanges(event) {
   event.preventDefault();
-
   const newGameUsername = document.getElementById('edit-username').value.trim();
   const newAccountUsername = document.getElementById('edit-account-username').value.trim();
   const selectedAvatar = document.querySelector('.edit-avatar-option.selected');
-
   if (!newGameUsername || !newAccountUsername || !selectedAvatar) {
     showEditMessage('⚠ All fields are required', 'error');
     return;
   }
-
-  // Update game username
   if (!StorageManager.updateGameUsername(newGameUsername)) {
     showEditMessage('✗ Failed to update game username', 'error');
     return;
   }
-
-  // Update account username
   if (!StorageManager.updateAccountUsername(newAccountUsername)) {
     showEditMessage('✗ Username already exists', 'error');
     return;
   }
-
-  // Update avatar
   const newAvatar = selectedAvatar.getAttribute('data-avatar');
   if (!StorageManager.updateAvatar(newAvatar)) {
     showEditMessage('✗ Failed to update avatar', 'error');
     return;
   }
-
   showEditMessage('✓ Profile updated successfully!', 'success');
-  
-  setTimeout(() => {
-    closeEditProfileModal();
-    displayUserInfo();
-    location.reload();
-  }, 1500);
+  setTimeout(() => { closeEditProfileModal(); displayUserInfo(); location.reload(); }, 1500);
 }
 
 function showEditMessage(message, type) {
@@ -458,7 +434,6 @@ function showEditMessage(message, type) {
   }
 }
 
-// Quiz helpers
 function calculateScore(correctAnswers, totalQuestions) {
   return Math.round((correctAnswers / totalQuestions) * 100);
 }
@@ -467,7 +442,6 @@ function showMessage(message, type = 'info') {
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${type}`;
   messageDiv.textContent = message;
-  
   const container = document.querySelector('.container') || document.querySelector('.content-area');
   if (container) {
     container.insertBefore(messageDiv, container.firstChild);
@@ -475,73 +449,55 @@ function showMessage(message, type = 'info') {
   }
 }
 
-// Sound Effects using Web Audio API
 const SoundManager = {
-  // Create audio context
   audioContext: null,
-
   getAudioContext() {
     if (!this.audioContext) {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
     return this.audioContext;
   },
-
-  // Play a tone with exact frequency and duration
   playTone(frequency, duration, startTime = 0, volume = 0.3) {
     try {
       const ctx = this.getAudioContext();
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
-
       oscillator.connect(gainNode);
       gainNode.connect(ctx.destination);
-
       oscillator.frequency.value = frequency;
       oscillator.type = 'sine';
-
       gainNode.gain.setValueAtTime(volume, ctx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-
       oscillator.start(ctx.currentTime + startTime);
       oscillator.stop(ctx.currentTime + startTime + duration);
     } catch (e) {
       console.log('Audio API not available');
     }
   },
-
-  // Correct answer sound (ascending notes)
   playCorrect() {
-    this.playTone(523.25, 0.1, 0, 0.3);     // C5
-    this.playTone(659.25, 0.1, 0.1, 0.3);   // E5
-    this.playTone(783.99, 0.15, 0.2, 0.3);  // G5
+    this.playTone(523.25, 0.1, 0, 0.3);
+    this.playTone(659.25, 0.1, 0.1, 0.3);
+    this.playTone(783.99, 0.15, 0.2, 0.3);
   },
-
-  // Wrong answer sound (descending notes)
   playWrong() {
-    this.playTone(523.25, 0.1, 0, 0.2);     // C5
-    this.playTone(392.00, 0.1, 0.1, 0.2);   // G4
-    this.playTone(261.63, 0.15, 0.2, 0.2);  // C4
+    this.playTone(523.25, 0.1, 0, 0.2);
+    this.playTone(392.00, 0.1, 0.1, 0.2);
+    this.playTone(261.63, 0.15, 0.2, 0.2);
   },
-
-  // Quiz passed sound (celebratory)
   playPassed() {
-    this.playTone(523.25, 0.15, 0, 0.3);    // C5
-    this.playTone(659.25, 0.15, 0.15, 0.3); // E5
-    this.playTone(783.99, 0.15, 0.3, 0.3);  // G5
-    this.playTone(1046.5, 0.25, 0.45, 0.3); // C6
+    this.playTone(523.25, 0.15, 0, 0.3);
+    this.playTone(659.25, 0.15, 0.15, 0.3);
+    this.playTone(783.99, 0.15, 0.3, 0.3);
+    this.playTone(1046.5, 0.25, 0.45, 0.3);
   },
-
-  // Quiz failed sound (sad tones)
   playFailed() {
-    this.playTone(349.23, 0.2, 0, 0.2);     // F4
-    this.playTone(293.66, 0.2, 0.2, 0.2);   // D4
-    this.playTone(246.94, 0.3, 0.4, 0.2);   // B3
+    this.playTone(349.23, 0.2, 0, 0.2);
+    this.playTone(293.66, 0.2, 0.2, 0.2);
+    this.playTone(246.94, 0.3, 0.4, 0.2);
   }
 };
 
-// Initialize page
 window.addEventListener('DOMContentLoaded', () => {
   displayUserInfo();
-  createEditModal(); // Pre-create the modal
+  createEditModal();
 });

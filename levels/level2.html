@@ -692,7 +692,6 @@
       if (percentage >= MIN_PASSING_SCORE && percentage <= MAX_SCORE) {
         StorageManager.completeLevelQuiz('level2', percentage);
       } else {
-        StorageManager.recordQuizAttempt('level2', percentage, false);
       }
     }
 
@@ -768,8 +767,6 @@
           <br><strong style="color: var(--accent-cyan);">Focus areas:</strong> Review RAM requirements, storage types, and monitor specifications.
         `;
       }
-
-      // DYNAMIC BUTTON RENDERING BASED ON PASS/FAIL
       const actionsContainer = document.getElementById('result-actions');
       actionsContainer.innerHTML = '';
 

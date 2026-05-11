@@ -654,7 +654,7 @@
       if (percentage >= MIN_PASSING_SCORE && percentage <= MAX_SCORE) {
         StorageManager.completeLevelQuiz('level1', percentage);
       } else {
-        StorageManager.recordQuizAttempt('level1', percentage, false);
+        // Score below passing range — do not mark as completed
       }
     }
 
@@ -752,9 +752,8 @@
       }
     }
 
-    // Modified back button function with passing range check
     function goBackToLevels() {
-      const levelData = StorageManager.getLevelProgress('level1');
+      const levelData = StorageManager.getLevelProgress().level1;
       const passed = levelData && levelData.completed && 
                      levelData.score >= MIN_PASSING_SCORE && 
                      levelData.score <= MAX_SCORE;
