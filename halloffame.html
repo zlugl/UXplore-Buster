@@ -50,95 +50,183 @@
 
   <script src="js/utils.js"></script>
   <script>
-    async function renderRankings() {
-      const container = document.getElementById('rankings-container');
-      const noPlayersMsg = document.getElementById('no-players-message');
-      container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:40px;">Loading rankings...</p>';
+    // ── helpers ──────────────────────────────────────────────────────────────
 
-      let rankings = [];
+    function getAvatarPathLocal(avatarFilename) {
+      if (!avatarFilename) return '👾';
+      // emoji or already a path with slash
+      if (avatarFilename.includes('/') || /\p{Emoji}/u.test(avatarFilename)) return avatarFilename;
+      return avatarFilename;
+    }
+
+    // Pull every player stored locally so we never show 0 for the current user
+    function getLocalRankings() {
+      const profiles = JSON.parse(localStorage.getItem('uxplore_profiles') || '{}');
+      const rows = [];
+
+      Object.keys(profiles).forEach(key => {
+        const p = profiles[key];
+        if (!p || !p.gameUsername) return;
+
+        // Support both key names used in different parts of the codebase
+        const lp = p.levelProgress || p.levelScores || {
+          level1: { completed: false, score: 0 },
+          level2: { completed: false, score: 0 },
+          level3: { completed: false, score: 0 },
+          level4: { completed: false, score: 0 },
+          level5: { completed: false, score: 0 }
+        };
+
+        const totalScore = Object.values(lp).reduce(
+          (sum, l) => sum + (l && l.completed ? (l.score || 0) : 0), 0
+        );
+        const completedLevels = Object.values(lp).filter(l => l && l.completed).length;
+
+        rows.push({
+          gameUsername: p.gameUsername,
+          avatar: p.avatar || '👾',
+          totalScore,
+          completedLevels,
+          levelScores: lp   // normalised name for the renderer
+        });
+      });
+
+      return rows.sort((a, b) => b.totalScore - a.totalScore)
+                 .map((r, i) => ({ ...r, rank: i + 1 }));
+    }
+
+    // Merge server list + local list, keeping the better score per username
+    function mergeRankings(serverRows, localRows) {
+      const map = new Map();
+
+      // Local data first (guaranteed current session)
+      localRows.forEach(r => {
+        map.set(r.gameUsername.toLowerCase(), { ...r });
+      });
+
+      // Server data wins only if score is higher (server may lag)
+      serverRows.forEach(r => {
+        const key = r.gameUsername.toLowerCase();
+        const existing = map.get(key);
+        if (!existing || r.totalScore > existing.totalScore) {
+          // Normalise server key name (server uses levelScores already in halloffame endpoint)
+          map.set(key, { ...r, levelScores: r.levelScores || r.levelProgress || {} });
+        }
+      });
+
+      return Array.from(map.values())
+                  .sort((a, b) => b.totalScore - a.totalScore)
+                  .map((r, i) => ({ ...r, rank: i + 1 }));
+    }
+
+    // ── renderer ─────────────────────────────────────────────────────────────
+
+    function buildCard(player, index) {
+      const medalEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${player.rank}`;
+
+      // Support both key names coming from different sources
+      const levelScores = player.levelScores || player.levelProgress || {};
+
+      const avatarSrc = getAvatarPathLocal(player.avatar);
+      const isImage = avatarSrc && /\.(png|jpg|gif)$/i.test(avatarSrc);
+      const avatarHTML = isImage
+        ? `<img src="${avatarSrc}" alt="Avatar" style="width:60px;height:60px;border-radius:8px;margin-right:12px;border:2px solid var(--accent-cyan);">`
+        : `<span style="font-size:40px;margin-right:12px;">${avatarSrc || '👾'}</span>`;
+
+      const levelCells = ['level1', 'level2', 'level3', 'level4', 'level5'].map((lvl, i) => {
+        const entry = levelScores[lvl] || { completed: false, score: 0 };
+        const done  = entry.completed === true;
+        const score = done ? (entry.score || 0) : null;
+        const color = done ? 'var(--success)' : 'var(--text-secondary)';
+        const bg    = done ? 'rgba(0,255,136,0.1)' : 'rgba(160,160,192,0.1)';
+        return `
+          <div style="padding:8px;background:${bg};border:1px solid ${color};border-radius:4px;text-align:center;">
+            <p style="font-size:11px;color:var(--text-secondary);margin:0 0 4px 0;">L${i + 1}</p>
+            <p style="font-size:14px;font-weight:bold;color:${color};margin:0;">
+              ${done ? score + '%' : '—'}
+            </p>
+          </div>`;
+      }).join('');
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.marginBottom = '20px';
+      card.innerHTML = `
+        <div style="display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;">
+          <div style="text-align:center;font-size:32px;font-weight:bold;color:var(--accent-cyan);">
+            ${medalEmoji}
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;margin-bottom:10px;">
+              ${avatarHTML}
+              <div>
+                <p style="font-size:18px;color:var(--accent-cyan);font-weight:bold;margin:0;">
+                  ${player.gameUsername}
+                </p>
+                <p style="color:var(--text-secondary);font-size:12px;margin:5px 0 0 0;">
+                  Completed ${player.completedLevels} / 5 Levels
+                </p>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;">
+              ${levelCells}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <p style="font-size:24px;color:var(--accent-purple);font-weight:bold;margin:0;">
+              ${player.totalScore}
+            </p>
+            <p style="color:var(--text-secondary);font-size:12px;margin:5px 0 0 0;">total points</p>
+          </div>
+        </div>`;
+      return card;
+    }
+
+    // ── main ─────────────────────────────────────────────────────────────────
+
+    async function renderRankings() {
+      const container    = document.getElementById('rankings-container');
+      const noPlayersMsg = document.getElementById('no-players-message');
+      container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:40px;">Loading rankings…</p>';
+
+      // Always load local data immediately so the current user's score shows
+      const localRows  = getLocalRankings();
+      let   serverRows = [];
+
       try {
-        const res = await fetch('/api/halloffame');
+        const res  = await fetch('/api/halloffame');
         const data = await res.json();
-        rankings = (data.users || []).map((u, i) => ({ ...u, rank: i + 1 }));
+        if (Array.isArray(data.users)) {
+          serverRows = data.users.map((u, i) => ({
+            ...u,
+            rank: i + 1,
+            // normalise: server endpoint already computes totalScore & completedLevels
+            levelScores: u.levelScores || {}
+          }));
+        }
       } catch (e) {
-        rankings = getRankings();
+        console.warn('Hall of Fame API unavailable, using local data only.');
       }
+
+      const rankings = mergeRankings(serverRows, localRows);
+
+      container.innerHTML = '';
 
       if (rankings.length === 0) {
         noPlayersMsg.style.display = 'block';
-        container.innerHTML = '';
         return;
       }
 
       noPlayersMsg.style.display = 'none';
-      container.innerHTML = '';
-
       rankings.forEach((player, index) => {
-        const medalEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${player.rank}`;
-        const levelScores = player.levelScores || {};
-
-        const scoreCard = document.createElement('div');
-        scoreCard.className = 'card';
-        scoreCard.style.marginBottom = '20px';
-
-        const avatarSrc = getAvatarPath(player.avatar);
-        const isImage = avatarSrc && /\.(png|jpg|gif)$/i.test(avatarSrc);
-        const avatarHTML = isImage
-          ? `<img src="${avatarSrc}" alt="Avatar" style="width:60px;height:60px;border-radius:8px;margin-right:12px;border:2px solid var(--accent-cyan);">`
-          : `<span style="font-size:40px;margin-right:12px;">${avatarSrc || '👾'}</span>`;
-
-        scoreCard.innerHTML = `
-          <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center;">
-            <div style="text-align: center; font-size: 32px; font-weight: bold; color: var(--accent-cyan);">
-              ${medalEmoji}
-            </div>
-            <div>
-              <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                ${avatarHTML}
-                <div>
-                  <p style="font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin: 0;">
-                    ${player.gameUsername}
-                  </p>
-                  <p style="color: var(--text-secondary); font-size: 12px; margin: 5px 0 0 0;">
-                    Completed ${player.completedLevels} / 5 Levels
-                  </p>
-                </div>
-              </div>
-              <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px;">
-                ${['level1', 'level2', 'level3', 'level4', 'level5'].map((level, i) => {
-                  const score = levelScores[level] || { completed: false, score: 0 };
-                  const isCompleted = score.completed;
-                  const color = isCompleted ? 'var(--success)' : 'var(--text-secondary)';
-                  const bgColor = isCompleted ? 'rgba(0, 255, 136, 0.1)' : 'rgba(160, 160, 192, 0.1)';
-                  return `
-                    <div style="padding: 8px; background: ${bgColor}; border: 1px solid ${color}; border-radius: 4px; text-align: center;">
-                      <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 4px 0;">L${i+1}</p>
-                      <p style="font-size: 14px; font-weight: bold; color: ${color}; margin: 0;">
-                        ${isCompleted ? score.score + '%' : '—'}
-                      </p>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <p style="font-size: 24px; color: var(--accent-purple); font-weight: bold; margin: 0;">
-                ${player.totalScore}
-              </p>
-              <p style="color: var(--text-secondary); font-size: 12px; margin: 5px 0 0 0;">
-                total points
-              </p>
-            </div>
-          </div>
-        `;
-        container.appendChild(scoreCard);
+        container.appendChild(buildCard(player, index));
       });
     }
 
     renderRankings();
   </script>
-  
-  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.3); border-top: 1px solid var(--accent-cyan); color: white; font-size: 12px; font-weight: bold; box-sizing: border-box; z-index: 999;">
+
+  <footer style="position:fixed;bottom:0;left:0;width:100%;text-align:center;padding:15px;background:rgba(0,0,0,0.3);border-top:1px solid var(--accent-cyan);color:white;font-size:12px;font-weight:bold;box-sizing:border-box;z-index:999;">
     © 2026 Andres & Lomboy - UxPlore Buster
   </footer>
 </body>
