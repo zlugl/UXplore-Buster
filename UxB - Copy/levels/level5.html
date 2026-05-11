@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UxPlore Buster - Level 5</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="level5.css">
+</head>
+<body>
+  <header>
+    <h1> LEVEL 5: DEBUGGING CHALLENGES </h1>
+    <div id="user-info" style="position: absolute; right: 20px; top: 20px; display: flex; align-items: center; color: var(--accent-cyan);"></div>
+  </header>
+
+  <div class="content-area">
+    <!-- Lecture Section -->
+    <div id="lecture-section">
+      <h1 class="section-title">📖 Debugging & Optimization Guide</h1>
+
+      <div class="card">
+        <h3>🔍 Common HTML Bugs</h3>
+        <ul class="bug-list">
+          <li><strong>Unclosed Tags:</strong> &lt;div&gt;&lt;p&gt;Text&lt;/div&gt; (missing &lt;/p&gt;)</li>
+          <li><strong>Missing type attribute:</strong> &lt;input placeholder="Email"&gt; should be &lt;input type="email"&gt;</li>
+          <li><strong>Missing alt on images:</strong> &lt;img src="pic.jpg"&gt; should have alt="description"</li>
+          <li><strong>Wrong nesting:</strong> Block elements inside inline elements</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🎨 Common CSS Bugs</h3>
+        <ul class="bug-list">
+          <li><strong>Fixed height overflow:</strong> height: 50px with tall content = hidden text</li>
+          <li><strong>Low contrast:</strong> Light gray text on white = unreadable</li>
+          <li><strong>Width issues:</strong> width: 100% + padding = box overflow</li>
+          <li><strong>Alignment problems:</strong> Margins and padding causing misalignment</li>
+          <li><strong>Missing responsive:</strong> Looks bad on mobile without @media queries</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>✅ Debugging Process</h3>
+        <ol style="color: var(--text-secondary); line-height: 2.2; padding-left: 20px;">
+          <li><strong style="color: var(--accent-cyan);">Identify:</strong> What's broken? What should it be?</li>
+          <li><strong style="color: var(--accent-cyan);">Isolate:</strong> Which line of code caused it?</li>
+          <li><strong style="color: var(--accent-cyan);">Review:</strong> Check syntax, values, logic</li>
+          <li><strong style="color: var(--accent-cyan);">Fix:</strong> Make the correction</li>
+          <li><strong style="color: var(--accent-cyan);">Test:</strong> Verify the fix works</li>
+        </ol>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <button class="btn btn-primary" onclick="startDebugChallenges()" style="padding: 16px 35px; font-size: 16px;">
+          🚀 START DEBUGGING CHALLENGES
+        </button>
+      </div>
+    </div>
+
+    <!-- Debugging Section -->
+    <div id="debug-challenges-section" style="display: none;">
+      <h1 class="section-title">🐛 Find and Fix the Bugs</h1>
+      <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">
+        Below is buggy code. Fix it and complete all 4 challenges!
+      </p>
+
+      <div id="debug-challenges-container">
+        <!-- Challenges will be generated here -->
+      </div>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <button class="btn btn-primary" onclick="completeAllDebugChallenges()" style="padding: 12px 30px;">
+          ✓ CHECK ALL FIXES
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" style="display: none;">
+      <h1 class="section-title">📊 Debugging Complete!</h1>
+      <div class="card" style="text-align: center; margin: 40px auto;">
+        <h3 id="result-title">🎉 Expert Debugger!</h3>
+        <p id="result-message" style="font-size: 18px; margin: 20px 0; color: var(--accent-cyan);"></p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+          <div style="padding: 20px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--text-secondary);">Your Score</p>
+            <p id="final-score" style="font-size: 36px; color: var(--success); font-weight: bold;"></p>
+          </div>
+          <div style="padding: 20px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--text-secondary);">All Levels</p>
+            <p style="font-size: 36px; color: var(--accent-cyan); font-weight: bold;">5/5 ✓</p>
+          </div>
+        </div>
+        <p id="result-feedback" style="color: var(--text-secondary); margin: 20px 0; line-height: 1.6;"></p>
+        <p style="margin-top: 30px; padding: 15px; background: rgba(0, 255, 136, 0.1); border: 1px solid var(--success); border-radius: 4px; color: var(--success); font-weight: bold;">
+          🎓 CONGRATULATIONS! You've completed UxPlore Buster! You're a UX/UI design expert!
+        </p>
+        <div style="margin-top: 30px;">
+          <button class="btn btn-secondary" onclick="location.href='../halloffame.html'" style="padding: 12px 30px; margin: 5px;">
+            🏆 VIEW HALL OF FAME
+          </button>
+          <button class="btn btn-primary" onclick="location.href='../levels.html'" style="padding: 12px 30px; margin: 5px;">
+            BACK TO LEVELS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="level5.js"></script>
+</body>
+</html>

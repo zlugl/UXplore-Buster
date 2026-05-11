@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UxPlore Buster - Introduction</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1> GAME INTRODUCTION </h1>
+    <div id="user-info" style="position: absolute; right: 20px; top: 20px; display: flex; align-items: center; gap: 15px; color: var(--accent-cyan);"></div>
+  </header>
+
+  <div class="content-area">
+    <h1 class="section-title">Welcome to UxPlore Buster</h1>
+
+    <!-- Purpose -->
+    <div class="card">
+      <h3>🎯 Purpose</h3>
+      <p>
+        UxPlore Buster is an interactive educational game designed to teach you the fundamentals, 
+        best practices, and advanced techniques of User Experience (UX) and User Interface (UI) design. 
+        Through a series of progressive challenges and quizzes, you'll master the skills needed to 
+        become a proficient UX/UI designer.
+      </p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="card">
+      <h3>🏆 Benefits</h3>
+      <ul style="list-style-position: inside; color: var(--text-secondary); line-height: 1.8;">
+        <li><strong style="color: var(--accent-cyan);">Learn Fundamentals:</strong> Understand core UX/UI design principles from scratch</li>
+        <li><strong style="color: var(--accent-cyan);">Hardware Knowledge:</strong> Learn what equipment and specifications you need for design work</li>
+        <li><strong style="color: var(--accent-cyan);">Practical Skills:</strong> Apply design theory to real-world scenarios</li>
+        <li><strong style="color: var(--accent-cyan);">Coding Integration:</strong> Discover how design connects with HTML and CSS</li>
+        <li><strong style="color: var(--accent-cyan);">Problem Solving:</strong> Debug and improve designs through critical thinking</li>
+        <li><strong style="color: var(--accent-cyan);">Structured Learning:</strong> Progress through 5 levels with increasing difficulty</li>
+      </ul>
+    </div>
+
+    <!-- What You'll Learn -->
+    <div class="card">
+      <h3>📚 What You'll Learn</h3>
+      
+      <div style="margin-top: 15px;">
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(0, 217, 255, 0.2);">
+          <p><strong style="color: var(--accent-purple); font-size: 16px;">Level 1: Introduction to UX/UI Design</strong></p>
+          <p style="color: var(--text-secondary); font-size: 14px;">
+            Discover what UX/UI design is, its objectives, applications, and importance in modern digital products.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(0, 217, 255, 0.2);">
+          <p><strong style="color: var(--accent-purple); font-size: 16px;">Level 2: Hardware & Equipment Requirements</strong></p>
+          <p style="color: var(--text-secondary); font-size: 14px;">
+            Learn about the hardware components (RAM, CPU, GPU, monitors) needed for efficient UX/UI design work.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(0, 217, 255, 0.2);">
+          <p><strong style="color: var(--accent-purple); font-size: 16px;">Level 3: Basic Design Principles</strong></p>
+          <p style="color: var(--text-secondary); font-size: 14px;">
+            Master practical design skills: choosing UI elements, typography, color theory, and visual hierarchy.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(0, 217, 255, 0.2);">
+          <p><strong style="color: var(--accent-purple); font-size: 16px;">Level 4: Design Through Code</strong></p>
+          <p style="color: var(--text-secondary); font-size: 14px;">
+            Learn HTML and CSS fundamentals and how to implement your designs in code.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <p><strong style="color: var(--accent-purple); font-size: 16px;">Level 5: Debugging & Optimization</strong></p>
+          <p style="color: var(--text-secondary); font-size: 14px;">
+            Identify and fix design issues, optimize code, and improve user experience.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="card">
+      <h3> How It Works</h3>
+      <p style="margin-bottom: 15px;">
+        Each level follows a structured learning path:
+      </p>
+      <ol style="list-style-position: inside; color: var(--text-secondary); line-height: 1.8;">
+        <li><strong style="color: var(--accent-cyan);">📖 Learn:</strong> Study the lecture material to understand the topic</li>
+        <li><strong style="color: var(--accent-cyan);">🧠 Understand:</strong> Engage with interactive content and examples</li>
+        <li><strong style="color: var(--accent-cyan);">❓ Quiz:</strong> Test your knowledge with targeted questions</li>
+        <li><strong style="color: var(--accent-cyan);">📊 Score:</strong> Receive feedback on your performance</li>
+        <li><strong style="color: var(--accent-cyan);">🔓 Unlock:</strong> Progress to the next level upon completion</li>
+      </ol>
+    </div>
+
+    <!-- Start Button -->
+    <div style="text-align: center; margin-top: 40px; margin-bottom: 40px;">
+      <button class="btn btn-primary" onclick="startGame()" style="padding: 18px 40px; font-size: 18px;">
+        BEGIN YOUR JOURNEY
+      </button>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script>
+    checkAuth();
+
+    function startGame() {
+      const progress = StorageManager.getLevelProgress();
+      const allLevelsCompleted = progress.level1.completed && progress.level2.completed && 
+                                 progress.level3.completed && progress.level4.completed && 
+                                 progress.level5.completed;
+      
+      if (allLevelsCompleted) {
+        // Skip mechanics for completed players
+        navigateTo('levels');
+      } else {
+        // First-time players go to mechanics
+        navigateTo('mechanics');
+      }
+    }
+  </script>
+  
+  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.3); border-top: 1px solid var(--accent-cyan); color: white; font-size: 12px; font-weight: bold; box-sizing: border-box; z-index: 999;">
+    © 2026 Andres & Lomboy - UxPlore Buster
+  </footer>
+</body>
+</html>
