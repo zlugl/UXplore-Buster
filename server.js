@@ -13,13 +13,42 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 app.use(express.json());
 
+mongoose.set('bufferCommands', false);
+
+let dbConnected = false;
+
 if (MONGODB_URI) {
-  mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+  mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 8000,
+    connectTimeoutMS: 8000,
+    socketTimeoutMS: 30000,
+    maxPoolSize: 10
+  })
+    .then(() => {
+      dbConnected = true;
+      console.log('Connected to MongoDB');
+    })
+    .catch(err => console.error('MongoDB connection error:', err.message));
+
+  mongoose.connection.on('connected', () => { dbConnected = true; });
+  mongoose.connection.on('disconnected', () => {
+    dbConnected = false;
+    console.warn('MongoDB disconnected, attempting to reconnect...');
+  });
+  mongoose.connection.on('error', err => console.error('MongoDB error:', err.message));
 } else {
-  console.warn('MONGODB_URI not set — running in localStorage-only mode');
+  console.warn('MONGODB_URI not set — running without database');
 }
+
+function requireDb(req, res, next) {
+  if (!dbConnected) {
+    return res.status(503).json({
+      error: 'Database is not connected. Please check your MongoDB Atlas connection and ensure all IPs are whitelisted (0.0.0.0/0).'
+    });
+  }
+  next();
+}
+
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -64,7 +93,7 @@ function formatProfile(p) {
   };
 }
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', requireDb, async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
@@ -91,7 +120,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', requireDb, async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
@@ -125,7 +154,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.patch('/api/auth/username', authMiddleware, async (req, res) => {
+app.patch('/api/auth/username', requireDb, authMiddleware, async (req, res) => {
   try {
     const { username } = req.body;
     const exists = await User.findOne({
@@ -140,7 +169,7 @@ app.patch('/api/auth/username', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/profile', authMiddleware, async (req, res) => {
+app.get('/api/profile', requireDb, authMiddleware, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
     res.json({ profile: formatProfile(profile) });
@@ -149,7 +178,7 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/profile', authMiddleware, async (req, res) => {
+app.post('/api/profile', requireDb, authMiddleware, async (req, res) => {
   try {
     const { gameUsername, avatar, levelProgress } = req.body;
     let profile = await Profile.findOne({ userId: req.user.id });
@@ -178,7 +207,7 @@ app.post('/api/profile', authMiddleware, async (req, res) => {
   }
 });
 
-app.patch('/api/profile', authMiddleware, async (req, res) => {
+app.patch('/api/profile', requireDb, authMiddleware, async (req, res) => {
   try {
     const { gameUsername, avatar } = req.body;
     const update = {};
@@ -195,7 +224,7 @@ app.patch('/api/profile', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/progress/:levelId', authMiddleware, async (req, res) => {
+app.post('/api/progress/:levelId', requireDb, authMiddleware, async (req, res) => {
   try {
     const { levelId } = req.params;
     const { score } = req.body;
@@ -230,7 +259,7 @@ app.post('/api/progress/:levelId', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/halloffame', async (req, res) => {
+app.get('/api/halloffame', requireDb, async (req, res) => {
   try {
     const profiles = await Profile.find().lean();
     const users = profiles.map(p => {
