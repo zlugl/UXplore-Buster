@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UxPlore Buster - Level 4</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="level4.css">
+  <style>
+    /* Timer & Result Styles */
+    .challenge-timer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: rgba(0, 217, 255, 0.15);
+      border-radius: 8px;
+      border: 1px solid var(--accent-cyan);
+    }
+    .timer-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      font-family: monospace;
+    }
+    .timer-warning {
+      color: var(--error) !important;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .result-breakdown {
+      text-align: left;
+      margin: 20px 0;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+    .result-item {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border-left: 4px solid;
+      background: rgba(255,255,255,0.05);
+    }
+    .result-item.correct {
+      border-left-color: var(--success);
+    }
+    .result-item.incorrect {
+      border-left-color: var(--error);
+    }
+    .result-question {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .result-answer {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 4px 0;
+    }
+    .result-status {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .result-status.correct {
+      background: var(--success);
+      color: #000;
+    }
+    .result-status.incorrect {
+      background: var(--error);
+      color: #fff;
+    }
+    .time-spent {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+      font-style: italic;
+    }
+    .code-feedback {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .code-feedback.correct {
+      background: rgba(0, 255, 136, 0.15);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    .code-feedback.incorrect {
+      background: rgba(255, 82, 82, 0.15);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1> LEVEL 4: DESIGN THROUGH CODE </h1>
+  </header>
+
+  <div class="content-area">
+    <!-- Lecture Section -->
+    <div id="lecture-section">
+      <h1 class="section-title">📖 Lecture: HTML & CSS Fundamentals</h1>
+
+      <div class="card">
+        <h3>What is HTML?</h3>
+        <p style="margin-bottom: 15px;">
+          <strong>HTML (HyperText Markup Language)</strong> is the foundation of all web pages. 
+          It provides the <strong>structure</strong> and <strong>content</strong> of web pages using "tags" or "elements."
+        </p>
+        <p style="padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+          Think of HTML as the <strong>skeleton</strong> of a building - it defines what's there.
+        </p>
+        
+        <p style="color: var(--accent-cyan); font-weight: bold; margin: 20px 0;">Basic HTML Elements:</p>
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-left: 2px solid var(--success); margin: 10px 0; font-family: 'Poppins', sans-serif; color: var(--success); font-size: 13px;">
+&lt;!DOCTYPE html&gt;<br>
+&lt;html&gt;<br>
+&nbsp;&nbsp;&lt;head&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;title&gt;Page Title&lt;/title&gt;<br>
+&nbsp;&nbsp;&lt;/head&gt;<br>
+&nbsp;&nbsp;&lt;body&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;h1&gt;This is a Heading&lt;/h1&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;This is a paragraph.&lt;/p&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;button&gt;Click Me&lt;/button&gt;<br>
+&nbsp;&nbsp;&lt;/body&gt;<br>
+&lt;/html&gt;
+        </div>
+
+        <p style="margin-top: 15px; color: var(--text-secondary); line-height: 1.8;">
+          <strong style="color: var(--accent-cyan);">&lt;h1&gt; to &lt;h6&gt;:</strong> Headings (h1 is largest)<br>
+          <strong style="color: var(--accent-cyan);">&lt;p&gt;:</strong> Paragraphs of text<br>
+          <strong style="color: var(--accent-cyan);">&lt;button&gt;:</strong> Interactive buttons<br>
+          <strong style="color: var(--accent-cyan);">&lt;input&gt;:</strong> Form fields for user input<br>
+          <strong style="color: var(--accent-cyan);">&lt;div&gt;:</strong> Generic container for sections<br>
+          <strong style="color: var(--accent-cyan);">&lt;img&gt;:</strong> Images
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>What is CSS?</h3>
+        <p style="margin-bottom: 15px;">
+          <strong>CSS (Cascading Style Sheets)</strong> is used to <strong>style</strong> and <strong>layout</strong> 
+          HTML elements. It controls colors, fonts, spacing, borders, and positioning.
+        </p>
+        <p style="padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+          Think of CSS as the <strong>makeup and furnishings</strong> - it makes the building look good.
+        </p>
+
+        <p style="color: var(--accent-cyan); font-weight: bold; margin: 20px 0;">Basic CSS Syntax:</p>
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-left: 2px solid var(--success); margin: 10px 0; font-family: 'Poppins', sans-serif; color: var(--success); font-size: 13px;">
+button {<br>
+&nbsp;&nbsp;background-color: #00d9ff;<br>
+&nbsp;&nbsp;color: #0a0e27;<br>
+&nbsp;&nbsp;padding: 10px 20px;<br>
+&nbsp;&nbsp;border: none;<br>
+&nbsp;&nbsp;border-radius: 5px;<br>
+&nbsp;&nbsp;font-size: 16px;<br>
+&nbsp;&nbsp;cursor: pointer;<br>
+}
+        </div>
+
+        <p style="margin-top: 15px; color: var(--text-secondary); line-height: 1.8;">
+          <strong style="color: var(--accent-cyan);">background-color:</strong> Button background color<br>
+          <strong style="color: var(--accent-cyan);">color:</strong> Text color<br>
+          <strong style="color: var(--accent-cyan);">padding:</strong> Space inside the element<br>
+          <strong style="color: var(--accent-cyan);">border:</strong> Border around element<br>
+          <strong style="color: var(--accent-cyan);">border-radius:</strong> Rounded corners<br>
+          <strong style="color: var(--accent-cyan);">font-size:</strong> Text size<br>
+          <strong style="color: var(--accent-cyan);">cursor:</strong> Mouse cursor style
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>HTML and CSS Together</h3>
+        <p style="margin-bottom: 15px;">
+          Here's a simple login form combining HTML and CSS:
+        </p>
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-left: 2px solid var(--success); margin: 10px 0; font-family: 'Poppins', sans-serif; color: var(--success); font-size: 12px; overflow-x: auto;">
+&lt;html&gt;<br>
+&lt;head&gt;<br>
+&nbsp;&nbsp;&lt;style&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.login-form {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;max-width: 300px;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;margin: 50px auto;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;padding: 20px;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;border: 1px solid #00d9ff;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;border-radius: 8px;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;input { width: 100%; padding: 10px; margin: 10px 0; }<br>
+&nbsp;&nbsp;&nbsp;&nbsp;button { width: 100%; padding: 10px; background-color: #00d9ff; }<br>
+&nbsp;&nbsp;&lt;/style&gt;<br>
+&lt;/head&gt;<br>
+&lt;body&gt;<br>
+&nbsp;&nbsp;&lt;div class="login-form"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;h2&gt;Login&lt;/h2&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" placeholder="Username"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="password" placeholder="Password"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;button&gt;Sign In&lt;/button&gt;<br>
+&nbsp;&nbsp;&lt;/div&gt;<br>
+&lt;/body&gt;<br>
+&lt;/html&gt;
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Essential CSS Properties for UI Design</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div style="padding: 12px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 8px;">Layout</p>
+            <ul style="color: var(--text-secondary); font-size: 13px; margin: 0; padding-left: 15px;">
+              <li>display: flex, grid</li>
+              <li>margin, padding</li>
+              <li>width, height</li>
+              <li>position: absolute, relative</li>
+            </ul>
+          </div>
+          <div style="padding: 12px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 8px;">Styling</p>
+            <ul style="color: var(--text-secondary); font-size: 13px; margin: 0; padding-left: 15px;">
+              <li>background-color</li>
+              <li>color, font-size</li>
+              <li>border, border-radius</li>
+              <li>box-shadow, opacity</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <button class="btn btn-primary" onclick="startChallenges()" style="padding: 16px 35px; font-size: 16px;">
+          START 10 CODING CHALLENGES
+        </button>
+      </div>
+    </div>
+
+    <!-- Challenge Section -->
+    <div id="challenge-section" style="display: none;">
+      <h1 class="section-title">💻 Live Coding Challenges</h1>
+      
+      <!-- Timer Display -->
+      <div class="challenge-timer">
+        <span style="font-size: 14px;">⏱️ Time Remaining:</span>
+        <span class="timer-display" id="timer-display">120s</span>
+        <span style="font-size: 12px; color: var(--text-secondary);">per challenge</span>
+      </div>
+      
+      <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">
+        Write HTML and CSS code. See your creation in real-time! Complete all 10 challenges to finish the level.
+      </p>
+
+      <div id="challenges-container">
+        <!-- Challenges will be generated here -->
+      </div>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <button class="btn btn-primary" onclick="checkAllChallenges()" style="padding: 12px 30px;">
+          ✓ SUBMIT LEVEL
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" style="display: none;">
+      <h1 class="section-title">📊 Level Complete!</h1>
+      <div class="card" style="text-align: center; margin: 40px auto;">
+        <h3 id="result-title">Excellent Work!</h3>
+        <p id="result-message" style="font-size: 18px; margin: 20px 0; color: var(--accent-cyan);"></p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+          <div style="padding: 20px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--text-secondary);">Your Score</p>
+            <p id="final-score" style="font-size: 36px; color: var(--success); font-weight: bold;"></p>
+          </div>
+          <div style="padding: 20px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--text-secondary);">Passing Score</p>
+            <p style="font-size: 36px; color: var(--accent-cyan); font-weight: bold;">100%</p>
+          </div>
+        </div>
+        <p id="result-feedback" style="color: var(--text-secondary); margin: 20px 0; line-height: 1.6;"></p>
+        
+        <!-- Detailed Breakdown -->
+        <div class="result-breakdown" id="result-breakdown">
+          <!-- Breakdown items will be inserted here -->
+        </div>
+        
+        <div style="margin-top: 30px;">
+          <button class="btn btn-secondary" onclick="location.href='../levels.html'" style="padding: 12px 30px; margin: 5px;">
+            BACK TO LEVELS
+          </button>
+          <button class="btn btn-primary" onclick="location.reload()" style="padding: 12px 30px; margin: 5px;">
+            RETAKE CHALLENGES
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="level4.js"></script>
+</body>
+</html>

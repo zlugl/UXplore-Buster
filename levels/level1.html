@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UxPlore Buster - Level 1</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .timer-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: rgba(0, 217, 255, 0.15);
+      border-radius: 8px;
+      border: 1px solid var(--accent-cyan);
+    }
+    .timer-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      font-family: monospace;
+    }
+    .timer-warning {
+      color: var(--error) !important;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .result-breakdown {
+      text-align: left;
+      margin: 20px 0;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+    .result-item {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border-left: 4px solid;
+      background: rgba(255,255,255,0.05);
+    }
+    .result-item.correct {
+      border-left-color: var(--success);
+    }
+    .result-item.incorrect {
+      border-left-color: var(--error);
+    }
+    .result-question {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .result-answer {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 4px 0;
+    }
+    .result-answer.user-answer {
+      color: var(--error);
+    }
+    .result-answer.correct-answer {
+      color: var(--success);
+    }
+    .result-status {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .result-status.correct {
+      background: var(--success);
+      color: #000;
+    }
+    .result-status.incorrect {
+      background: var(--error);
+      color: #fff;
+    }
+    .time-spent {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+      font-style: italic;
+    }
+    .option.selected.correct {
+      background: rgba(0, 255, 136, 0.2) !important;
+      border-color: var(--success) !important;
+    }
+    .option.selected.incorrect {
+      background: rgba(255, 82, 82, 0.2) !important;
+      border-color: var(--error) !important;
+    }
+    .option.correct-answer {
+      background: rgba(0, 255, 136, 0.15) !important;
+      border-color: var(--success) !important;
+    }
+    .locked-notice {
+      background: rgba(255, 82, 82, 0.15);
+      border: 1px solid var(--error);
+      border-radius: 6px;
+      padding: 12px 20px;
+      margin: 15px 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .locked-notice strong {
+      color: var(--error);
+    }
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 10px 0;
+    }
+    .score-badge.pass {
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+    .score-badge.fail {
+      background: rgba(255, 82, 82, 0.15);
+      color: var(--error);
+      border: 1px solid var(--error);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1> LEVEL 1: INTRODUCTION TO UX/UI DESIGN </h1>
+  </header>
+
+  <div class="content-area">
+    <!-- Lecture Section -->
+    <div id="lecture-section">
+      <h1 class="section-title">📖 Lecture: Introduction to UX/UI Design</h1>
+
+      <div class="card">
+        <h3>What is UX/UI Design?</h3>
+        <p>
+          <strong>UX Design (User Experience)</strong> focuses on optimizing how people interact with a product. 
+          It's about understanding user needs, behaviors, and pain points to create solutions that are intuitive, 
+          efficient, and enjoyable to use.
+        </p>
+        <p style="margin-top: 15px;">
+          <strong>UI Design (User Interface)</strong> deals with the visual and interactive elements of a product. 
+          It includes buttons, menus, icons, colors, typography, and all visual components that users see and interact with.
+        </p>
+        <p style="margin-top: 15px; color: var(--accent-cyan); font-style: italic;">
+          Think of UX as "how it works" and UI as "how it looks and feels."
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Core Objectives of UX/UI Design</h3>
+        <ol style="list-style-position: inside; color: var(--text-secondary); line-height: 1.8;">
+          <li><strong style="color: var(--accent-cyan);">Solve User Problems:</strong> Create solutions that address real user needs and frustrations</li>
+          <li><strong style="color: var(--accent-cyan);">Improve Usability:</strong> Make products easy to learn and navigate</li>
+          <li><strong style="color: var(--accent-cyan);">Enhance Accessibility:</strong> Ensure products work for everyone, including users with disabilities</li>
+          <li><strong style="color: var(--accent-cyan);">Increase Engagement:</strong> Create experiences that keep users engaged and satisfied</li>
+          <li><strong style="color: var(--accent-cyan);">Achieve Business Goals:</strong> Support business objectives while meeting user needs</li>
+          <li><strong style="color: var(--accent-cyan);">Reduce Frustration:</strong> Minimize errors and friction in user interactions</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>Purpose and Applications</h3>
+        <p style="margin-bottom: 15px;">
+          UX/UI design is essential for creating meaningful digital experiences. Here are the primary purposes:
+        </p>
+        <div style="color: var(--text-secondary);">
+          <div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+            <p><strong style="color: var(--accent-cyan);">Websites & Web Applications</strong></p>
+            <p style="font-size: 14px;">Design e-commerce sites, social media platforms, productivity tools, and more</p>
+          </div>
+          <div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+            <p><strong style="color: var(--accent-cyan);">Mobile Applications</strong></p>
+            <p style="font-size: 14px;">Create intuitive interfaces for iOS, Android, and cross-platform apps</p>
+          </div>
+          <div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+            <p><strong style="color: var(--accent-cyan);">Software & SaaS Products</strong></p>
+            <p style="font-size: 14px;">Design enterprise software, project management tools, and cloud applications</p>
+          </div>
+          <div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+            <p><strong style="color: var(--accent-cyan);">IoT & Hardware Interfaces</strong></p>
+            <p style="font-size: 14px;">Design interfaces for smart devices, wearables, and physical products</p>
+          </div>
+          <div style="padding: 12px; background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--accent-cyan);">
+            <p><strong style="color: var(--accent-cyan);">VR/AR Experiences</strong></p>
+            <p style="font-size: 14px;">Create immersive experiences in virtual and augmented reality environments</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Why is UX/UI Design Useful?</h3>
+        <ul style="list-style-position: inside; color: var(--text-secondary); line-height: 1.8;">
+          <li><strong style="color: var(--success);">💰 Increases Revenue:</strong> Better UX leads to higher conversion rates and customer retention</li>
+          <li><strong style="color: var(--success);">👥 Builds Loyalty:</strong> Users return to products they find easy and enjoyable to use</li>
+          <li><strong style="color: var(--success);">📊 Reduces Support Costs:</strong> Good design reduces user confusion and support tickets</li>
+          <li><strong style="color: var(--success);">⚡ Improves Efficiency:</strong> Intuitive interfaces save users time and effort</li>
+          <li><strong style="color: var(--success);">🏆 Creates Competitive Advantage:</strong> Stand out from competitors with superior experience</li>
+          <li><strong style="color: var(--success);">📱 Meets User Expectations:</strong> Modern users expect polished, user-friendly products</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>The UX/UI Design Process</h3>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px;">
+          <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px; text-align: center;">
+            <p style="font-size: 24px; margin-bottom: 8px;">🔍</p>
+            <p style="font-size: 12px; color: var(--accent-cyan); font-weight: bold;">Research</p>
+            <p style="font-size: 11px; color: var(--text-secondary);">Understand users & market</p>
+          </div>
+          <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px; text-align: center;">
+            <p style="font-size: 24px; margin-bottom: 8px;">🎨</p>
+            <p style="font-size: 12px; color: var(--accent-cyan); font-weight: bold;">Design</p>
+            <p style="font-size: 11px; color: var(--text-secondary);">Create prototypes & visuals</p>
+          </div>
+          <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px; text-align: center;">
+            <p style="font-size: 24px; margin-bottom: 8px;">💻</p>
+            <p style="font-size: 12px; color: var(--accent-cyan); font-weight: bold;">Develop</p>
+            <p style="font-size: 11px; color: var(--text-secondary);">Build with code</p>
+          </div>
+          <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px; text-align: center;">
+            <p style="font-size: 24px; margin-bottom: 8px;">🧪</p>
+            <p style="font-size: 12px; color: var(--accent-cyan); font-weight: bold;">Test</p>
+            <p style="font-size: 11px; color: var(--text-secondary);">Validate with users</p>
+          </div>
+          <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px; text-align: center;">
+            <p style="font-size: 24px; margin-bottom: 8px;">📈</p>
+            <p style="font-size: 12px; color: var(--accent-cyan); font-weight: bold;">Iterate</p>
+            <p style="font-size: 11px; color: var(--text-secondary);">Improve & refine</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Key Takeaways</h3>
+        <ul style="list-style-position: inside; color: var(--text-secondary); line-height: 1.8;">
+          <li>UX is the overall experience; UI is the visual and interactive interface</li>
+          <li>Good UX/UI design is centered on understanding and meeting user needs</li>
+          <li>It's applicable to websites, apps, software, hardware, and immersive experiences</li>
+          <li>Investing in UX/UI design leads to business success and user satisfaction</li>
+          <li>The design process is iterative and user-focused</li>
+        </ul>
+      </div>
+
+      <div style="text-align: center; margin: 40px 0;">
+        <button class="btn btn-primary" onclick="showQuiz()" style="padding: 16px 35px; font-size: 16px;">
+          PROCEED TO QUIZ
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz Section -->
+    <div id="quiz-section" style="display: none;">
+      <h1 class="section-title">❓ Level 1 Quiz</h1>
+      <div style="text-align: center; margin-bottom: 30px;">
+        <p style="color: var(--text-secondary); font-size: 14px;">Answer all questions to complete the level</p>
+        
+        <!-- Timer Display -->
+        <div class="timer-container">
+          <span style="font-size: 14px;">⏱️ Time Remaining:</span>
+          <span class="timer-display" id="timer-display">60s</span>
+          <span style="font-size: 12px; color: var(--text-secondary);">per question</span>
+        </div>
+        
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="quiz-container" id="quiz-container">
+        <!-- Questions will be generated here -->
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" style="display: none;">
+      <h1 class="section-title">📊 Your Results</h1>
+      <div class="card" style="text-align: center; margin: 40px auto;">
+        <h3 id="result-title">Quiz Completed!</h3>
+        <p id="result-message" style="font-size: 18px; margin: 20px 0; color: var(--accent-cyan);"></p>
+        
+        <!-- Score Badge -->
+        <div id="score-badge" class="score-badge" style="display: inline-flex;"></div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+          <div style="padding: 20px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--text-secondary);">Your Score</p>
+            <p id="final-score" style="font-size: 36px; color: var(--success); font-weight: bold;"></p>
+          </div>
+          <div style="padding: 20px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
+            <p style="color: var(--text-secondary);">Passing Range</p>
+            <p style="font-size: 36px; color: var(--accent-cyan); font-weight: bold;">70-100%</p>
+          </div>
+        </div>
+        <p id="result-feedback" style="color: var(--text-secondary); margin: 20px 0; line-height: 1.6;"></p>
+        
+        <!-- Lock Notice for Failed Attempts -->
+        <div id="lock-notice" class="locked-notice" style="display: none;">
+          <strong>🔒 Level 2 is Locked</strong><br>
+          You must score between <strong>70% - 100%</strong> to unlock the next level. Review the material and retake the quiz.
+        </div>
+        
+        <!-- Detailed Breakdown -->
+        <div class="result-breakdown" id="result-breakdown">
+          <!-- Breakdown items will be inserted here -->
+        </div>
+        
+        <div style="margin-top: 30px;">
+          <button class="btn btn-secondary" onclick="goBackToLevels()" style="padding: 12px 30px; margin: 5px;">
+            BACK TO LEVELS
+          </button>
+          <button class="btn btn-primary" onclick="location.reload()" style="padding: 12px 30px; margin: 5px;">
+            RETAKE QUIZ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script>
+    checkAuth();
+
+    const quizQuestions = [
+      {
+        question: "What is the main focus of UX Design?",
+        options: [
+          "Creating visually beautiful interfaces",
+          "Understanding user needs and optimizing how people interact with a product",
+          "Writing code for web applications",
+          "Choosing the best color palette"
+        ],
+        correct: 1,
+        points: 15,
+        explanation: "UX Design focuses on understanding user needs and optimizing interactions, not just visuals or code."
+      },
+      {
+        question: "Which statement BEST differentiates UI from UX?",
+        options: [
+          "UI is for mobile apps, UX is for websites",
+          "UI is the visual interface, UX is the overall experience",
+          "UI is more important than UX",
+          "There is no difference between UI and UX"
+        ],
+        correct: 1,
+        points: 10,
+        explanation: "UI handles visual/interactive elements; UX encompasses the entire user journey and experience."
+      },
+      {
+        question: "Which of these is NOT a core objective of UX/UI design?",
+        options: [
+          "Solve user problems",
+          "Increase engagement",
+          "Make design as complex as possible",
+          "Improve accessibility"
+        ],
+        correct: 2,
+        points: 10,
+        explanation: "Good UX/UI aims to SIMPLIFY, not complicate. Complexity increases friction and reduces usability."
+      },
+      {
+        question: "In which of these applications is UX/UI design most important?",
+        options: [
+          "Email marketing only",
+          "Websites, apps, software, IoT, and VR experiences",
+          "Only physical products",
+          "Social media only"
+        ],
+        correct: 1,
+        points: 10,
+        explanation: "UX/UI principles apply to ALL digital touchpoints where users interact with technology."
+      },
+      {
+        question: "How does good UX design impact business?",
+        options: [
+          "It has no impact on business",
+          "It decreases revenue",
+          "Increases revenue, builds loyalty, and reduces support costs",
+          "It only makes products look prettier"
+        ],
+        correct: 2,
+        points: 15,
+        explanation: "Good UX directly impacts business metrics: conversions, retention, support costs, and competitive advantage."
+      },
+      {
+        question: "What is the first step in the UX/UI design process?",
+        options: [
+          "Start coding immediately",
+          "Create beautiful visuals",
+          "Research and understand users' needs",
+          "Launch the product"
+        ],
+        correct: 2,
+        points: 10,
+        explanation: "Research is foundational. You can't design effective solutions without understanding user needs first."
+      },
+      {
+        question: "What does 'user-centered design' mean?",
+        options: [
+          "Designing based on what developers prefer",
+          "Creating designs that prioritize business goals over user needs",
+          "Involving users throughout the design process to meet their needs and expectations",
+          "Making designs that look trendy and modern"
+        ],
+        correct: 2,
+        points: 10,
+        explanation: "User-centered design means involving real users in research, testing, and iteration throughout the process."
+      },
+      {
+        question: "Which of these is an example of good accessibility practice in UX/UI design?",
+        options: [
+          "Using only small text to fit more content on screen",
+          "Providing alt text for images and ensuring keyboard navigation",
+          "Using low contrast colors for a subtle aesthetic",
+          "Requiring users to complete complex gestures to navigate"
+        ],
+        correct: 1,
+        points: 10,
+        explanation: "Accessibility means designing for everyone: alt text helps screen readers, keyboard nav helps motor-impaired users."
+      },
+      {
+        question: "What is a prototype in the UX design process?",
+        options: [
+          "The final coded version of a product ready for launch",
+          "A preliminary model used to test and validate design ideas before development",
+          "A document listing all the features of a product",
+          "A marketing tool to promote a product"
+        ],
+        correct: 1,
+        points: 10,
+        explanation: "Prototypes are testable models (low or high fidelity) used to validate ideas before investing in development."
+      },
+      {
+        question: "Why is iteration important in the UX/UI design process?",
+        options: [
+          "It allows designers to skip user testing and save time",
+          "It ensures the first design is always perfect",
+          "It enables continuous improvement based on user feedback and testing",
+          "It makes the design process longer without adding value"
+        ],
+        correct: 2,
+        points: 10,
+        explanation: "Iteration allows teams to learn from testing, fix issues, and progressively refine the experience."
+      }
+    ];
+
+    let currentQuestion = 0;
+    let userAnswers = [];
+    let questionTimes = [];
+    let quizStarted = false;
+    let timerInterval = null;
+    let timeRemaining = 60;
+    const TIME_PER_QUESTION = 60;
+    
+    // ✅ PASSING RANGE: 70% - 100%
+    const MIN_PASSING_SCORE = 70;
+    const MAX_SCORE = 100;
+
+    function showQuiz() {
+      document.getElementById('lecture-section').style.display = 'none';
+      document.getElementById('quiz-section').style.display = 'block';
+      renderQuestion();
+      quizStarted = true;
+      startTimer();
+    }
+
+    function startTimer() {
+      timeRemaining = TIME_PER_QUESTION;
+      updateTimerDisplay();
+      
+      if (timerInterval) clearInterval(timerInterval);
+      
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        
+        if (timeRemaining <= 10) {
+          document.getElementById('timer-display').classList.add('timer-warning');
+        }
+        
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          if (userAnswers[currentQuestion] === undefined) {
+            userAnswers[currentQuestion] = -1;
+            questionTimes[currentQuestion] = TIME_PER_QUESTION;
+          }
+          if (currentQuestion < quizQuestions.length - 1) {
+            currentQuestion++;
+            renderQuestion();
+            startTimer();
+          } else {
+            submitQuiz();
+          }
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const display = document.getElementById('timer-display');
+      display.textContent = `${timeRemaining}s`;
+      if (timeRemaining <= 10) {
+        display.classList.add('timer-warning');
+      } else {
+        display.classList.remove('timer-warning');
+      }
+    }
+
+    function renderQuestion() {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = '';
+
+      const question = quizQuestions[currentQuestion];
+      const questionDiv = document.createElement('div');
+      questionDiv.className = 'quiz-question';
+
+      questionDiv.innerHTML = `
+        <div class="question-text">
+          Question ${currentQuestion + 1} of ${quizQuestions.length}
+        </div>
+        <p style="font-size: 16px; margin: 20px 0; color: var(--text-primary);">
+          ${question.question}
+        </p>
+        <div class="options" id="options-container">
+          ${question.options.map((option, index) => `
+            <div class="option" onclick="selectOption(${index})" style="cursor: pointer;">
+              ${option}
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          ${currentQuestion > 0 ? `<button class="btn" onclick="previousQuestion()">← Previous</button>` : ''}
+          ${currentQuestion < quizQuestions.length - 1 ? 
+            `<button class="btn btn-primary" id="next-btn" disabled onclick="nextQuestion()">Next →</button>` : 
+            `<button class="btn btn-primary" id="next-btn" disabled onclick="submitQuiz()">SUBMIT QUIZ</button>`
+          }
+        </div>
+      `;
+
+      container.appendChild(questionDiv);
+      updateProgress();
+
+      if (userAnswers[currentQuestion] !== undefined) {
+        const options = document.querySelectorAll('.option');
+        if (userAnswers[currentQuestion] >= 0) {
+          options[userAnswers[currentQuestion]].classList.add('selected');
+        }
+        document.getElementById('next-btn').disabled = false;
+      }
+      
+      if (questionTimes[currentQuestion] === undefined) {
+        questionTimes[currentQuestion] = 0;
+        const startTime = Date.now();
+        const timeTracker = setInterval(() => {
+          if (userAnswers[currentQuestion] !== undefined || !quizStarted) {
+            clearInterval(timeTracker);
+            questionTimes[currentQuestion] = Math.round((Date.now() - startTime) / 1000);
+          }
+        }, 100);
+      }
+    }
+
+    function selectOption(index) {
+      userAnswers[currentQuestion] = index;
+      questionTimes[currentQuestion] = TIME_PER_QUESTION - timeRemaining;
+      
+      document.querySelectorAll('.option').forEach((opt, i) => {
+        opt.classList.remove('selected');
+        if (i === index) {
+          opt.classList.add('selected');
+          if (i === quizQuestions[currentQuestion].correct) {
+            SoundManager.playCorrect();
+          } else {
+            SoundManager.playWrong();
+          }
+        }
+      });
+      document.getElementById('next-btn').disabled = false;
+    }
+
+    function nextQuestion() {
+      if (userAnswers[currentQuestion] === undefined) {
+        alert('Please select an answer');
+        return;
+      }
+      if (currentQuestion < quizQuestions.length - 1) {
+        clearInterval(timerInterval);
+        currentQuestion++;
+        renderQuestion();
+        startTimer();
+      }
+    }
+
+    function previousQuestion() {
+      if (currentQuestion > 0) {
+        clearInterval(timerInterval);
+        currentQuestion--;
+        renderQuestion();
+        startTimer();
+      }
+    }
+
+    function updateProgress() {
+      const progress = ((currentQuestion + 1) / quizQuestions.length) * 100;
+      document.getElementById('progress-fill').style.width = progress + '%';
+    }
+
+    function submitQuiz() {
+      clearInterval(timerInterval);
+      
+      if (userAnswers.filter(a => a !== undefined).length < quizQuestions.length) {
+        quizQuestions.forEach((_, index) => {
+          if (userAnswers[index] === undefined) {
+            userAnswers[index] = -1;
+            questionTimes[index] = TIME_PER_QUESTION;
+          }
+        });
+      }
+
+      let correct = 0;
+      let totalPoints = 0;
+      let earnedPoints = 0;
+      
+      quizQuestions.forEach((q, index) => {
+        totalPoints += q.points;
+        if (userAnswers[index] === q.correct) {
+          earnedPoints += q.points;
+          correct++;
+        }
+      });
+
+      // Calculate raw percentage
+      let rawPercentage = (earnedPoints / totalPoints) * 100;
+      
+      // ✅ CAP percentage at 100% maximum
+      const percentage = Math.min(Math.round(rawPercentage), MAX_SCORE);
+
+      showResults(percentage, correct, quizQuestions.length, earnedPoints, totalPoints);
+
+      // ✅ Only mark level complete if score is within passing range [70-100]
+      if (percentage >= MIN_PASSING_SCORE && percentage <= MAX_SCORE) {
+        StorageManager.completeLevelQuiz('level1', percentage);
+      } else {
+        StorageManager.recordQuizAttempt('level1', percentage, false);
+      }
+    }
+
+    function showResults(percentage, correct, total, earnedPoints, totalPoints) {
+      document.getElementById('quiz-section').style.display = 'none';
+      document.getElementById('results-section').style.display = 'block';
+
+      // ✅ Check if score is within passing range [70-100]
+      const passed = percentage >= MIN_PASSING_SCORE && percentage <= MAX_SCORE;
+      
+      if (passed) {
+        SoundManager.playPassed();
+      } else {
+        SoundManager.playFailed();
+      }
+      
+      document.getElementById('result-title').textContent = passed ? '🎉 Quiz Passed!' : '❌ Quiz Failed';
+      document.getElementById('result-title').style.color = passed ? 'var(--success)' : 'var(--error)';
+      document.getElementById('result-message').innerHTML = 
+        `You answered ${correct} out of ${total} questions correctly`;
+      
+      // ✅ Display capped percentage
+      document.getElementById('final-score').textContent = `${percentage}%`;
+      document.getElementById('final-score').style.color = passed ? 'var(--success)' : 'var(--error)';
+
+      // ✅ Update score badge
+      const scoreBadge = document.getElementById('score-badge');
+      if (passed) {
+        scoreBadge.className = 'score-badge pass';
+        scoreBadge.innerHTML = `✅ Score within passing range (${MIN_PASSING_SCORE}-${MAX_SCORE}%)`;
+        scoreBadge.style.display = 'inline-flex';
+      } else if (percentage < MIN_PASSING_SCORE) {
+        scoreBadge.className = 'score-badge fail';
+        scoreBadge.innerHTML = `❌ Below minimum (${percentage}% < ${MIN_PASSING_SCORE}%)`;
+        scoreBadge.style.display = 'inline-flex';
+      } else {
+        // Should not happen with cap, but handle edge case
+        scoreBadge.className = 'score-badge fail';
+        scoreBadge.innerHTML = `⚠️ Invalid score`;
+        scoreBadge.style.display = 'inline-flex';
+      }
+
+      // Show/hide lock notice based on result
+      const lockNotice = document.getElementById('lock-notice');
+      lockNotice.style.display = passed ? 'none' : 'block';
+
+      // Generate detailed breakdown
+      const breakdownContainer = document.getElementById('result-breakdown');
+      breakdownContainer.innerHTML = '<h4 style="margin-bottom: 15px; color: var(--accent-cyan);">📋 Answer Breakdown</h4>';
+      
+      quizQuestions.forEach((q, index) => {
+        const isCorrect = userAnswers[index] === q.correct;
+        const userAnswer = userAnswers[index];
+        const timeSpent = questionTimes[index] || 0;
+        
+        const resultItem = document.createElement('div');
+        resultItem.className = `result-item ${isCorrect ? 'correct' : 'incorrect'}`;
+        
+        let userAnswerText = userAnswer >= 0 ? q.options[userAnswer] : '<em>No answer</em>';
+        let correctAnswerText = q.options[q.correct];
+        
+        resultItem.innerHTML = `
+          <div class="result-question">
+            Q${index + 1}: ${q.question}
+            <span class="result-status ${isCorrect ? 'correct' : 'incorrect'}">
+              ${isCorrect ? '✓ Correct' : '✗ Incorrect'}
+            </span>
+          </div>
+          <div class="result-answer user-answer">
+            <strong>Your answer:</strong> ${userAnswerText}
+          </div>
+          ${!isCorrect ? `<div class="result-answer correct-answer">
+            <strong>Correct answer:</strong> ${correctAnswerText}
+          </div>` : ''}
+          <div class="result-answer" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.2);">
+            <strong>💡 Explanation:</strong> ${q.explanation}
+          </div>
+          <div class="time-spent">⏱️ Time spent: ${timeSpent}s</div>
+        `;
+        
+        breakdownContainer.appendChild(resultItem);
+      });
+
+      if (passed) {
+        document.getElementById('result-feedback').innerHTML = `
+          <strong style="color: var(--success);">✓ Excellent work!</strong> Your score of ${percentage}% is within the passing range.
+          <br>Level 2 is now unlocked. Continue to your next challenge!
+        `;
+      } else {
+        document.getElementById('result-feedback').innerHTML = `
+          You need a score between <strong>${MIN_PASSING_SCORE}% - ${MAX_SCORE}%</strong> to pass this level.
+          <br>Your current score: <strong>${percentage}%</strong>
+          <br><strong style="color: var(--accent-cyan);">Focus areas:</strong> Re-read sections about objectives, accessibility, and the design process.
+        `;
+      }
+    }
+
+    // Modified back button function with passing range check
+    function goBackToLevels() {
+      const levelData = StorageManager.getLevelProgress('level1');
+      const passed = levelData && levelData.completed && 
+                     levelData.score >= MIN_PASSING_SCORE && 
+                     levelData.score <= MAX_SCORE;
+      
+      if (passed) {
+        location.href = '../levels.html';
+      } else {
+        if (confirm(`⚠️ Level 1 is not yet completed.\n\nYou need a score between ${MIN_PASSING_SCORE}% - ${MAX_SCORE}% to unlock Level 2.\n\nWould you like to:\n• Click "OK" to go back to Levels (Level 2 will remain locked)\n• Click "Cancel" to retake this quiz`)) {
+          location.href = '../levels.html';
+        }
+      }
+    }
+  </script>
+  
+  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.3); border-top: 1px solid var(--accent-cyan); color: white; font-size: 12px; font-weight: bold; box-sizing: border-box; z-index: 999;">
+    © 2026 Andres & Lomboy - UxPlore Buster
+  </footer>
+</body>
+</html>
