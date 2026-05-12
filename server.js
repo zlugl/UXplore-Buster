@@ -145,10 +145,6 @@ app.post('/api/auth/register', requireDb, async (req, res) => {
     if (exists) return res.status(400).json({ error: 'Username already exists' });
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ username, password: hashed });
-    await Profile.create({
-      userId: user._id,
-      gameUsername: username,
-      avatar: '👾',
       levelProgress: {
         level1: { completed: false, score: 0 },
         level2: { completed: false, score: 0 },
