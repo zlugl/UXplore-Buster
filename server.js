@@ -21,8 +21,6 @@ console.log('MongoDB URI (sanitised):', MONGODB_URI.replace(/:([^@]+)@/, ':***@'
 
 app.use(express.json());
 
-mongoose.set('bufferCommands', false);
-
 let dbConnected = false;
 let dbError = null;
 
