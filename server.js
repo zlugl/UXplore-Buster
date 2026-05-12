@@ -12,12 +12,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'uxplore-buster-secret-2026';
 
 let MONGODB_URI = process.env.MONGODB_URI || '';
 if (MONGODB_URI && !MONGODB_URI.includes('/uxplore')) {
-
-  MONGODB_URI = MONGODB_URI.replace(
-    /(\?|$)/,
-    (match) => '/uxplore' + (match === '?' ? '?' : '')
-  );
+  const parts = MONGODB_URI.replace(/\/$/, '').split('?');
+  parts[0] = parts[0].replace(/\/$/, '') + '/uxplore';
+  MONGODB_URI = parts.join('?');
 }
+console.log('MongoDB URI (sanitised):', MONGODB_URI.replace(/:([^@]+)@/, ':***@'));
+
 
 app.use(express.json());
 
@@ -25,6 +25,10 @@ mongoose.set('bufferCommands', false);
 
 let dbConnected = false;
 let dbError = null;
+
+
+
+
 
 async function connectDB() {
   if (!MONGODB_URI) {
@@ -42,15 +46,16 @@ async function connectDB() {
   };
 
   try {
-    console.log('Cononnecting to MongoDB...');
+    console.log('cnnecting to MongoDB...');
     await mongoose.connect(MONGODB_URI, options);
     dbConnected = true;
     dbError = null;
-    console.log('Connected to MongoDB');
+    console.log('connected to MongoDB');
   } catch (err) {
     dbConnected = false;
     dbError = err.message;
-    console.error('mngoDB connection failed:', err.message);
+    console.error('mongoDB connection failed:', err.message);
+
     setTimeout(connectDB, 10000);
   }
 }
@@ -58,12 +63,12 @@ async function connectDB() {
 mongoose.connection.on('connected', () => {
   dbConnected = true;
   dbError = null;
-  console.log('mongoDB connected');
+  console.log('mngoDB connected');
 });
 
 mongoose.connection.on('disconnected', () => {
   dbConnected = false;
-  console.warn('mongoDB disconnected — retrying...');
+  console.warn('MongoDB disconnected — retrying...');
   setTimeout(connectDB, 5000);
 });
 
@@ -72,7 +77,6 @@ mongoose.connection.on('error', (err) => {
   dbError = err.message;
   console.error('mongoDB error:', err.message);
 });
-
 
 connectDB();
 
@@ -85,6 +89,7 @@ function requireDb(req, res, next) {
   }
   next();
 }
+
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -106,6 +111,10 @@ const profileSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const Profile = mongoose.model('Profile', profileSchema);
+
+
+
+
 
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
@@ -130,7 +139,6 @@ function formatProfile(p) {
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, db: dbConnected, error: dbError || null });
 });
-
 app.post('/api/auth/register', requireDb, async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -209,7 +217,6 @@ app.patch('/api/auth/username', requireDb, authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 app.get('/api/profile', requireDb, authMiddleware, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
@@ -320,7 +327,6 @@ app.get('/api/halloffame', requireDb, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 app.use(express.static(path.join(__dirname), {
   index: 'index.html',
   setHeaders(res, filePath) {
@@ -342,6 +348,6 @@ module.exports = app;
 
 if (require.main === module) {
   app.listen(PORT, HOST, () => {
-    console.log(`Server running at http://${HOST}:${PORT}/`);
+    console.log(`seerver running at http://${HOST}:${PORT}/`);
   });
 }
