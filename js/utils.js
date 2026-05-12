@@ -78,22 +78,7 @@ const StorageManager = {
             mergedLP[lvl] = local;
           }
         });
-        const preferredAvatar =
-  existingLocalProfile.avatar && existingLocalProfile.avatar !== '👾'
-    ? existingLocalProfile.avatar
-    : result.profile.avatar;
-
-const preferredGameUsername =
-  existingLocalProfile.gameUsername && existingLocalProfile.gameUsername !== result.profile.gameUsername
-    ? existingLocalProfile.gameUsername
-    : result.profile.gameUsername;
-
-finalProfile = {
-  ...result.profile,
-  avatar: preferredAvatar,
-  gameUsername: preferredGameUsername,
-  levelProgress: mergedLP
-};
+        finalProfile = { ...result.profile, levelProgress: mergedLP };
         apiCall('POST', '/profile', {
           gameUsername: finalProfile.gameUsername,
           avatar: finalProfile.avatar,
