@@ -6,6 +6,109 @@
   <title>UxPlore Buster - Level 3</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="level3.css">
+  <style>
+    .challenge-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .draggable-items-panel {
+      border: 2px dashed var(--accent-cyan);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .drop-targets-panel {
+      border: 2px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .panel-label {
+      color: var(--accent-cyan);
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .draggables-list,
+    .drop-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Mobile-selected highlight (tap-to-select on touch) */
+    .draggable-item.mobile-selected {
+      outline: 3px solid var(--accent-pink) !important;
+      box-shadow: 0 0 18px rgba(249, 230, 92, 0.7) !important;
+      transform: scale(1.04);
+    }
+
+    .drop-target.highlight-drop,
+    .drop-target-order.highlight-drop {
+      background: rgba(249, 230, 92, 0.15) !important;
+      border-color: var(--accent-pink) !important;
+    }
+
+    /* Challenge action buttons */
+    .challenge-actions {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    /* Mobile tap hint — hidden by default, shown on small screens */
+    .mobile-tap-hint {
+      display: none;
+      margin: 10px 0 18px;
+      padding: 10px 14px;
+      background: rgba(249, 230, 92, 0.15);
+      border-left: 3px solid var(--accent-pink);
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--accent-pink);
+      line-height: 1.5;
+    }
+    @media (max-width: 768px) {
+      .challenge-cols {
+        grid-template-columns: 1fr !important;
+      }
+
+      .mobile-tap-hint {
+        display: block;
+      }
+
+
+
+      .draggable-item {
+        padding: 14px 16px !important;
+        font-size: 14px !important;
+        min-height: 50px;
+        width: auto !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: pointer !important;
+      }
+
+      .drop-target,
+      .drop-target-order {
+        min-height: 70px !important;
+        padding: 12px !important;
+        cursor: pointer !important;
+      }
+
+      .btn {
+        padding: 14px 18px !important;
+        font-size: 13px !important;
+      }
+      [style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -83,9 +186,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
           <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
-            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">
-              Serif Fonts
-            </p>
+            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">Serif Fonts</p>
             <p style="color: var(--text-secondary); font-size: 14px;">
               <strong>Feeling:</strong> Traditional, professional, formal
               <br><strong>Use for:</strong> Academic papers, books, formal applications
@@ -94,9 +195,7 @@
           </div>
 
           <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
-            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">
-              Sans-Serif Fonts
-            </p>
+            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">Sans-Serif Fonts</p>
             <p style="color: var(--text-secondary); font-size: 14px;">
               <strong>Feeling:</strong> Clean, modern, professional
               <br><strong>Use for:</strong> Web design, UI, contemporary products
@@ -105,9 +204,7 @@
           </div>
 
           <div style="padding: 15px; border: 1px solid var(--accent-cyan); border-radius: 4px;">
-            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">
-              Cursive Fonts
-            </p>
+            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">Cursive Fonts</p>
             <p style="color: var(--text-secondary); font-size: 14px;">
               <strong>Feeling:</strong> Artistic, elegant, flowing
               <br><strong>Use for:</strong> Logos, headings, special occasions
@@ -116,9 +213,7 @@
           </div>
 
           <div style="padding: 15px; border: 1px solid var(--error); border-radius: 4px;">
-            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--error); font-weight: bold; margin-bottom: 10px;">
-              🚫 Avoid for Posters
-            </p>
+            <p style="font-family: 'Poppins', sans-serif; font-size: 18px; color: var(--error); font-weight: bold; margin-bottom: 10px;">🚫 Avoid for Posters</p>
             <p style="color: var(--text-secondary); font-size: 14px;">
               <strong>For posters:</strong> Use bold sans-serif or display fonts
               <br><strong>Not:</strong> Cursive fonts (hard to read from distance)
@@ -134,9 +229,7 @@
 
       <div class="card">
         <h3>Color Theory Basics</h3>
-        <p style="margin-bottom: 15px;">
-          <strong>Colors evoke emotions and guide user attention.</strong>
-        </p>
+        <p style="margin-bottom: 15px;"><strong>Colors evoke emotions and guide user attention.</strong></p>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
           <div style="padding: 12px; background: rgba(255, 51, 102, 0.2); border-left: 3px solid #ff3366;">
@@ -160,9 +253,7 @@
 
       <div class="card">
         <h3>Visual Hierarchy</h3>
-        <p style="margin-bottom: 15px;">
-          <strong>Visual hierarchy guides users' eyes to important content.</strong>
-        </p>
+        <p style="margin-bottom: 15px;"><strong>Visual hierarchy guides users' eyes to important content.</strong></p>
         <ul style="list-style-position: inside; color: var(--text-secondary); line-height: 2;">
           <li><strong style="color: var(--accent-cyan);">Size:</strong> Larger elements appear more important</li>
           <li><strong style="color: var(--accent-cyan);">Color:</strong> Bright colors stand out from neutral backgrounds</li>
@@ -183,31 +274,36 @@
     <div id="quiz-section" style="display: none;">
       <h1 class="section-title">🎮 Interactive Design Challenge</h1>
       
-      <div style="text-align: center; margin-bottom: 40px;">
-        <p style="color: var(--text-secondary); font-size: 14px;">Complete all challenges by dragging elements to the correct boxes</p>
+      <div style="text-align: center; margin-bottom: 30px;">
+        <p style="color: var(--text-secondary); font-size: 14px;">Complete all challenges by placing elements in the correct boxes</p>
         <div class="progress-bar">
           <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
         </div>
         <p id="progress-text" style="color: var(--accent-cyan); margin-top: 10px; font-weight: bold;">Challenge 1 of 4: Button Shape Sorter</p>
       </div>
 
-      <!-- Challenge 1: Button Shape Sorter -->
+      <!-- Mobile tap hint (shown only on mobile via CSS) -->
+      <div class="mobile-tap-hint">
+        👆 <strong>Tap an item to select it</strong> (it will glow yellow), then <strong>tap a drop zone</strong> to place it there.
+      </div>
+
+      <!-- ── Challenge 1: Button Shape Sorter ── -->
       <div class="card" id="challenge1" style="display: block;">
         <h3>🔘 Challenge 1: Button Shape Sorter</h3>
-        <p style="margin-bottom: 20px; color: var(--text-secondary);">Drag the buttons to their appropriate contexts!</p>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">Drag (or tap) the buttons to their appropriate contexts!</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+        <div class="challenge-cols">
           <!-- Drag Items -->
-          <div style="border: 2px dashed var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📦 DRAG FROM HERE</p>
-            <div id="draggable-buttons" style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="draggable-items-panel">
+            <p class="panel-label">📦 SELECT FROM HERE</p>
+            <div class="draggables-list" id="draggable-buttons">
               <div class="draggable-item" draggable="true" data-type="rounded" style="padding: 10px 20px; background: rgba(61,139,253,0.3); border: 2px solid var(--accent-cyan); border-radius: 25px; text-align: center; cursor: grab; color: var(--accent-cyan); font-weight: bold;">
                 Rounded Button
               </div>
               <div class="draggable-item" draggable="true" data-type="square" style="padding: 10px 20px; background: rgba(124,58,237,0.3); border: 2px solid var(--accent-purple); border-radius: 0px; text-align: center; cursor: grab; color: var(--accent-purple); font-weight: bold;">
                 Square Button
               </div>
-              <div class="draggable-item" draggable="true" data-type="heart" style="padding: 10px 20px; background: rgba(231,76,60,0.3); border: 2px solid var(--error); border-radius: 50%; text-align: center; width: 100px; cursor: grab; color: var(--error); font-weight: bold;">
+              <div class="draggable-item" draggable="true" data-type="heart" style="padding: 10px 20px; background: rgba(231,76,60,0.3); border: 2px solid var(--error); border-radius: 50%; text-align: center; cursor: grab; color: var(--error); font-weight: bold;">
                 ❤ Heart
               </div>
               <div class="draggable-item" draggable="true" data-type="slightly-rounded" style="padding: 10px 20px; background: rgba(249,230,92,0.3); border: 2px solid var(--accent-pink); border-radius: 8px; text-align: center; cursor: grab; color: var(--accent-pink); font-weight: bold;">
@@ -217,9 +313,9 @@
           </div>
 
           <!-- Drop Targets -->
-          <div style="border: 2px solid var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📍 DROP HERE</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="drop-targets-panel">
+            <p class="panel-label">📍 DROP / TAP HERE</p>
+            <div class="drop-list">
               <div class="drop-target" data-target="login" style="min-height: 60px; border: 2px dashed var(--accent-cyan); border-radius: 4px; padding: 10px; background: rgba(61,139,253,0.1); color: var(--text-secondary);">
                 <p style="font-weight: bold; color: var(--accent-cyan); margin-bottom: 5px;">🔐 Login Form</p>
                 <p style="font-size: 12px;">Drop appropriate button here</p>
@@ -236,21 +332,21 @@
           </div>
         </div>
 
-        <div style="text-align: center;">
+        <div class="challenge-actions">
           <button class="btn btn-primary" onclick="checkChallenge1()" style="padding: 12px 30px;">CHECK ANSWER</button>
           <button class="btn btn-secondary" onclick="resetChallenge1()" style="padding: 12px 30px; margin-left: 10px;">🔄 RESET</button>
         </div>
       </div>
 
-      <!-- Challenge 2: Font Matcher -->
+      <!-- ── Challenge 2: Font Matcher ── -->
       <div class="card" id="challenge2" style="display: none;">
         <h3>🔤 Challenge 2: Font Matcher</h3>
-        <p style="margin-bottom: 20px; color: var(--text-secondary);">Drag fonts to their best use cases!</p>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">Drag (or tap) fonts to their best use cases!</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-          <div style="border: 2px dashed var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📦 FONT TYPES</p>
-            <div id="draggable-fonts" style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="challenge-cols">
+          <div class="draggable-items-panel">
+            <p class="panel-label">📦 FONT TYPES</p>
+            <div class="draggables-list" id="draggable-fonts">
               <div class="draggable-item" draggable="true" data-font="sans-serif" style="padding: 12px; background: rgba(46,204,113,0.2); border: 2px solid var(--success); border-radius: 4px; cursor: grab; font-family: Arial, sans-serif; font-weight: bold; text-align: center;">
                 SANS-SERIF
               </div>
@@ -263,9 +359,9 @@
             </div>
           </div>
 
-          <div style="border: 2px solid var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📍 USE CASES</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="drop-targets-panel">
+            <p class="panel-label">📍 USE CASES</p>
+            <div class="drop-list">
               <div class="drop-target" data-font-target="web" style="min-height: 60px; border: 2px dashed var(--accent-cyan); border-radius: 4px; padding: 10px; background: rgba(61,139,253,0.1);">
                 <p style="font-weight: bold; color: var(--accent-cyan); margin-bottom: 5px;">🌐 Web & UI Design</p>
                 <p style="font-size: 12px; color: var(--text-secondary);">Readable on screens</p>
@@ -282,21 +378,21 @@
           </div>
         </div>
 
-        <div style="text-align: center;">
+        <div class="challenge-actions">
           <button class="btn btn-primary" onclick="checkChallenge2()" style="padding: 12px 30px;">CHECK ANSWER</button>
           <button class="btn btn-secondary" onclick="resetChallenge2()" style="padding: 12px 30px; margin-left: 10px;">🔄 RESET</button>
         </div>
       </div>
 
-      <!-- Challenge 3: Color Sorter -->
+      <!-- ── Challenge 3: Color Sorter ── -->
       <div class="card" id="challenge3" style="display: none;">
         <h3>🎨 Challenge 3: Color Psychology Sorter</h3>
-        <p style="margin-bottom: 20px; color: var(--text-secondary);">Drag colors to their appropriate scenarios!</p>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">Drag (or tap) colors to their appropriate scenarios!</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-          <div style="border: 2px dashed var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">🎨 COLORS</p>
-            <div id="draggable-colors" style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="challenge-cols">
+          <div class="draggable-items-panel">
+            <p class="panel-label">🎨 COLORS</p>
+            <div class="draggables-list" id="draggable-colors">
               <div class="draggable-item" draggable="true" data-color="red" style="padding: 12px; background: #ff3366; border: 2px solid #ff3366; border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">RED</div>
               <div class="draggable-item" draggable="true" data-color="green" style="padding: 12px; background: var(--success); border: 2px solid var(--success); border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">GREEN</div>
               <div class="draggable-item" draggable="true" data-color="blue" style="padding: 12px; background: var(--accent-cyan); border: 2px solid var(--accent-cyan); border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">BLUE/CYAN</div>
@@ -304,9 +400,9 @@
             </div>
           </div>
 
-          <div style="border: 2px solid var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📍 SCENARIOS</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="drop-targets-panel">
+            <p class="panel-label">📍 SCENARIOS</p>
+            <div class="drop-list">
               <div class="drop-target" data-color-target="danger" style="min-height: 60px; border: 2px dashed var(--accent-cyan); border-radius: 4px; padding: 10px; background: rgba(61,139,253,0.1);">
                 <p style="font-weight: bold; color: var(--error); margin-bottom: 5px;">⚠️ Delete/Dangerous Action</p>
                 <p style="font-size: 12px; color: var(--text-secondary);">Alert users to critical actions</p>
@@ -327,21 +423,21 @@
           </div>
         </div>
 
-        <div style="text-align: center;">
+        <div class="challenge-actions">
           <button class="btn btn-primary" onclick="checkChallenge3()" style="padding: 12px 30px;">CHECK ANSWER</button>
           <button class="btn btn-secondary" onclick="resetChallenge3()" style="padding: 12px 30px; margin-left: 10px;">🔄 RESET</button>
         </div>
       </div>
 
-      <!-- Challenge 4: Visual Hierarchy Builder -->
+      <!-- ── Challenge 4: Visual Hierarchy Builder ── -->
       <div class="card" id="challenge4" style="display: none;">
         <h3>📊 Challenge 4: Visual Hierarchy Builder</h3>
-        <p style="margin-bottom: 20px; color: var(--text-secondary);">Arrange these elements by importance (drag to sort from most to least important)!</p>
+        <p style="margin-bottom: 20px; color: var(--text-secondary);">Arrange these elements by importance (most → least important)!</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-          <div style="border: 2px dashed var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📦 ELEMENTS</p>
-            <div id="draggable-hierarchy" style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="challenge-cols">
+          <div class="draggable-items-panel">
+            <p class="panel-label">📦 ELEMENTS</p>
+            <div class="draggables-list" id="draggable-hierarchy">
               <div class="draggable-item" draggable="true" data-hierarchy="logo" style="padding: 10px; background: rgba(249,230,92,0.3); border: 2px solid var(--accent-pink); border-radius: 4px; cursor: grab; color: var(--accent-pink); font-weight: bold;">
                 🏢 Small Logo (Low Priority)
               </div>
@@ -357,9 +453,9 @@
             </div>
           </div>
 
-          <div style="border: 2px solid var(--accent-cyan); border-radius: 8px; padding: 20px;">
-            <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">📍 PRIORITY ORDER</p>
-            <div id="hierarchy-order" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="drop-targets-panel">
+            <p class="panel-label">📍 PRIORITY ORDER</p>
+            <div class="drop-list" id="hierarchy-order">
               <div class="drop-target-order" style="min-height: 50px; border: 2px dashed var(--accent-cyan); border-radius: 4px; padding: 10px; background: rgba(61,139,253,0.1); color: var(--text-secondary);">
                 <p style="font-weight: bold; color: var(--accent-cyan);">1️⃣ MOST Important</p>
               </div>
@@ -376,7 +472,7 @@
           </div>
         </div>
 
-        <div style="text-align: center;">
+        <div class="challenge-actions">
           <button class="btn btn-primary" onclick="checkChallenge4()" style="padding: 12px 30px;">CHECK ANSWER</button>
           <button class="btn btn-secondary" onclick="resetChallenge4()" style="padding: 12px 30px; margin-left: 10px;">🔄 RESET</button>
         </div>
@@ -415,28 +511,33 @@
   <script src="../js/utils.js"></script>
 
   <script>
-    var currentChallenge = 1;
+    /* ══════════════════════════════════════════════
+       LEVEL 3 — Interactive Challenge Logic
+       Supports both desktop drag-and-drop AND
+       mobile tap-to-select / tap-to-place
+    ══════════════════════════════════════════════ */
 
+    var currentChallenge = 1;
+    var mobileSelectedItem = null; // tracks tapped item on touch devices
+
+    /* ── Show quiz ── */
     function showQuiz() {
       document.getElementById('lecture-section').style.display = 'none';
       document.getElementById('quiz-section').style.display = 'block';
       updateProgressText();
-      setupDragDrop();
+      setupInteractions();
     }
 
+    /* ── Progress text ── */
     function updateProgressText() {
-      var names = [
-        'Button Shape Sorter',
-        'Font Matcher',
-        'Color Psychology Sorter',
-        'Visual Hierarchy Builder'
-      ];
+      var names = ['Button Shape Sorter', 'Font Matcher', 'Color Psychology Sorter', 'Visual Hierarchy Builder'];
       var el = document.getElementById('progress-text');
       if (el) el.textContent = 'Challenge ' + currentChallenge + ' of 4: ' + names[currentChallenge - 1];
       var fill = document.getElementById('progress-fill');
       if (fill) fill.style.width = ((currentChallenge - 1) * 25) + '%';
     }
 
+    /* ── Navigate to next challenge ── */
     function nextChallenge() {
       var current = document.getElementById('challenge' + currentChallenge);
       if (current) current.style.display = 'none';
@@ -445,13 +546,17 @@
         var next = document.getElementById('challenge' + currentChallenge);
         if (next) next.style.display = 'block';
         updateProgressText();
+        // Scroll to top of card on mobile
+        if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
+    /* ── Complete all challenges → show results ── */
     function completeChallenge() {
       showResults(100);
     }
 
+    /* ── Results ── */
     function showResults(percentage) {
       document.getElementById('quiz-section').style.display = 'none';
       document.getElementById('results-section').style.display = 'block';
@@ -477,84 +582,138 @@
       }
     }
 
-    // ── Drag & Drop ──
-    var dragInitialized = false;
+    /* ══════════════════════════════════════════════
+       UNIFIED INTERACTION SETUP
+       Handles both mouse drag-and-drop AND touch/click
+    ══════════════════════════════════════════════ */
+    var interactionInitialized = false;
 
-    function setupDragDrop() {
-      if (dragInitialized) return;
-      dragInitialized = true;
+    function setupInteractions() {
+      if (interactionInitialized) return;
+      interactionInitialized = true;
 
       var quizSection = document.getElementById('quiz-section');
       if (!quizSection) return;
 
-      quizSection.addEventListener('dragstart', function(e) {
-        if (e.target.classList.contains('draggable-item')) {
-          e.target.style.opacity = '0.5';
-          e.dataTransfer.setData('text/plain', JSON.stringify({
-            text: e.target.textContent.trim(),
-            html: e.target.outerHTML
-          }));
-        }
+      /* ── Desktop: HTML5 Drag & Drop ── */
+      quizSection.addEventListener('dragstart', function (e) {
+        var item = e.target.closest('.draggable-item');
+        if (!item) return;
+        item.style.opacity = '0.5';
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          text: item.textContent.trim(),
+          html: item.outerHTML
+        }));
       });
 
-      quizSection.addEventListener('dragend', function(e) {
-        if (e.target.classList.contains('draggable-item')) {
-          e.target.style.opacity = '1';
-        }
+      quizSection.addEventListener('dragend', function (e) {
+        var item = e.target.closest('.draggable-item');
+        if (item) item.style.opacity = '1';
       });
 
-      quizSection.addEventListener('dragover', function(e) {
+      quizSection.addEventListener('dragover', function (e) {
         var target = e.target.closest('.drop-target, .drop-target-order');
         if (target) {
           e.preventDefault();
-          target.style.background = 'rgba(61,139,253,0.3)';
-          target.style.borderColor = '#00d9ff';
+          target.classList.add('highlight-drop');
         }
       });
 
-      quizSection.addEventListener('dragleave', function(e) {
+      quizSection.addEventListener('dragleave', function (e) {
         var target = e.target.closest('.drop-target, .drop-target-order');
         if (target && !target.contains(e.relatedTarget)) {
-          target.style.background = 'rgba(61,139,253,0.1)';
-          target.style.borderColor = '';
+          target.classList.remove('highlight-drop');
         }
       });
 
-      quizSection.addEventListener('drop', function(e) {
+      quizSection.addEventListener('drop', function (e) {
         e.preventDefault();
         var target = e.target.closest('.drop-target, .drop-target-order');
         if (!target) return;
-
-        target.style.background = 'rgba(61,139,253,0.1)';
-        target.style.borderColor = '';
-
+        target.classList.remove('highlight-drop');
         try {
           var data = JSON.parse(e.dataTransfer.getData('text/plain'));
-          var temp = document.createElement('div');
-          temp.innerHTML = data.html;
-          var clone = temp.firstChild;
-          clone.draggable = false;
-          clone.style.cursor = 'default';
-
-          if (target.classList.contains('drop-target-order')) {
-            var label = target.querySelector('p') ? target.querySelector('p').textContent : '';
-            target.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);">' + label + '</p>';
-          } else {
-            target.innerHTML = '';
-          }
-          target.appendChild(clone);
+          placeItemInTarget(data.html, target);
         } catch (err) {
           console.warn('Drop error:', err);
         }
       });
+
+      /* ── Mobile / Touch: Tap-to-select, tap-to-place ── */
+      quizSection.addEventListener('click', function (e) {
+        var draggable = e.target.closest('.draggable-item');
+        var dropZone  = e.target.closest('.drop-target, .drop-target-order');
+
+        if (draggable) {
+          /* Toggle selection */
+          if (mobileSelectedItem) {
+            mobileSelectedItem.classList.remove('mobile-selected');
+            if (mobileSelectedItem === draggable) {
+              mobileSelectedItem = null;
+              return;
+            }
+          }
+          mobileSelectedItem = draggable;
+          draggable.classList.add('mobile-selected');
+
+          /* Highlight all drop zones as hint */
+          quizSection.querySelectorAll('.drop-target, .drop-target-order').forEach(function (z) {
+            z.classList.add('highlight-drop');
+          });
+          return;
+        }
+
+        if (dropZone && mobileSelectedItem) {
+          /* Place selected item */
+          quizSection.querySelectorAll('.drop-target, .drop-target-order').forEach(function (z) {
+            z.classList.remove('highlight-drop');
+          });
+          placeItemInTarget(mobileSelectedItem.outerHTML, dropZone);
+          mobileSelectedItem.classList.remove('mobile-selected');
+          mobileSelectedItem = null;
+          return;
+        }
+
+        /* Tapped elsewhere — deselect */
+        if (!draggable && !dropZone && mobileSelectedItem) {
+          mobileSelectedItem.classList.remove('mobile-selected');
+          mobileSelectedItem = null;
+          quizSection.querySelectorAll('.drop-target, .drop-target-order').forEach(function (z) {
+            z.classList.remove('highlight-drop');
+          });
+        }
+      });
     }
 
-    // ── Challenge Check Functions ──
+    /* Place an item's HTML into a drop zone */
+    function placeItemInTarget(html, target) {
+      var temp = document.createElement('div');
+      temp.innerHTML = html;
+      var clone = temp.firstChild;
+      if (!clone) return;
+      clone.draggable = false;
+      clone.style.cursor = 'pointer'; // still tappable (to re-select)
+      clone.classList.remove('mobile-selected');
+
+      if (target.classList.contains('drop-target-order')) {
+        var label = target.querySelector('p') ? target.querySelector('p').textContent : '';
+        target.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);">' + label + '</p>';
+      } else {
+        target.innerHTML = '';
+      }
+      target.appendChild(clone);
+    }
+
+    /* ══════════════════════════════════════════════
+       CHECK / RESET FUNCTIONS
+    ══════════════════════════════════════════════ */
+
+    /* ── Challenge 1 ── */
     function checkChallenge1() {
       var targets = document.querySelectorAll('#challenge1 .drop-target');
       var correct = 0;
       var answers = { 'login': 'Square Button', 'cta': 'Rounded Button', 'decorator': 'Heart' };
-      targets.forEach(function(t) {
+      targets.forEach(function (t) {
         var key = t.getAttribute('data-target');
         if (t.textContent.includes(answers[key])) {
           correct++;
@@ -565,29 +724,30 @@
       });
       if (correct === 3) {
         if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
-        setTimeout(function() { alert('✓ Correct! Square buttons suit login forms, rounded for CTAs, heart for decorators.'); nextChallenge(); }, 400);
+        setTimeout(function () { alert('✓ Correct! Square buttons suit login forms, rounded for CTAs, heart for decorators.'); nextChallenge(); }, 400);
       } else {
         if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
-        alert('❌ Not quite right. Hint: Login forms use Square buttons, CTAs use Rounded, likes/favorites use Heart shapes.');
+        alert('❌ Not quite right.\n\nHint: Login forms use Square buttons, CTAs use Rounded, likes/favourites use Heart shapes.');
       }
     }
 
     function resetChallenge1() {
-      document.querySelectorAll('#challenge1 .drop-target').forEach(function(t) {
+      document.querySelectorAll('#challenge1 .drop-target').forEach(function (t) {
         var key = t.getAttribute('data-target');
-        if (key === 'login') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🔐 Login Form</p><p style="font-size:12px;">Drop appropriate button here</p>';
-        else if (key === 'cta') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🎯 Call-to-Action</p><p style="font-size:12px;">Drop appropriate button here</p>';
-        else t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">✨ Decorator/Like</p><p style="font-size:12px;">Drop appropriate button here</p>';
+        if (key === 'login')     t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🔐 Login Form</p><p style="font-size:12px;">Drop appropriate button here</p>';
+        else if (key === 'cta')  t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🎯 Call-to-Action</p><p style="font-size:12px;">Drop appropriate button here</p>';
+        else                     t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">✨ Decorator/Like</p><p style="font-size:12px;">Drop appropriate button here</p>';
         t.style.borderColor = '';
         t.style.background = 'rgba(61,139,253,0.1)';
       });
     }
 
+    /* ── Challenge 2 ── */
     function checkChallenge2() {
       var targets = document.querySelectorAll('#challenge2 .drop-target');
       var correct = 0;
       var answers = { 'web': 'SANS-SERIF', 'poster': 'SANS-SERIF', 'special': 'CURSIVE' };
-      targets.forEach(function(t) {
+      targets.forEach(function (t) {
         var key = t.getAttribute('data-font-target');
         if (t.textContent.includes(answers[key])) {
           correct++;
@@ -598,29 +758,30 @@
       });
       if (correct === 3) {
         if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
-        setTimeout(function() { alert('✓ Correct! Sans-serif for screens and posters, cursive for logos and special uses.'); nextChallenge(); }, 400);
+        setTimeout(function () { alert('✓ Correct! Sans-serif for screens and posters, cursive for logos and special uses.'); nextChallenge(); }, 400);
       } else {
         if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
-        alert('❌ Not quite right. Hint: Posters need bold readable fonts (sans-serif), logos can use cursive.');
+        alert('❌ Not quite right.\n\nHint: Posters need bold readable fonts (sans-serif), logos can use cursive.');
       }
     }
 
     function resetChallenge2() {
-      document.querySelectorAll('#challenge2 .drop-target').forEach(function(t) {
+      document.querySelectorAll('#challenge2 .drop-target').forEach(function (t) {
         var key = t.getAttribute('data-font-target');
-        if (key === 'web') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🌐 Web & UI Design</p><p style="font-size:12px;color:var(--text-secondary);">Readable on screens</p>';
+        if (key === 'web')     t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🌐 Web & UI Design</p><p style="font-size:12px;color:var(--text-secondary);">Readable on screens</p>';
         else if (key === 'poster') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">📢 Posters & Bold Display</p><p style="font-size:12px;color:var(--text-secondary);">Must be visible from distance</p>';
-        else t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">✨ Logos & Special Moments</p><p style="font-size:12px;color:var(--text-secondary);">Artistic & decorative</p>';
+        else                   t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">✨ Logos & Special Moments</p><p style="font-size:12px;color:var(--text-secondary);">Artistic & decorative</p>';
         t.style.borderColor = '';
         t.style.background = 'rgba(61,139,253,0.1)';
       });
     }
 
+    /* ── Challenge 3 ── */
     function checkChallenge3() {
       var targets = document.querySelectorAll('#challenge3 .drop-target');
       var correct = 0;
       var answers = { 'danger': 'RED', 'success': 'GREEN', 'trust': 'BLUE/CYAN', 'warning': 'YELLOW' };
-      targets.forEach(function(t) {
+      targets.forEach(function (t) {
         var key = t.getAttribute('data-color-target');
         if (t.textContent.includes(answers[key])) {
           correct++;
@@ -631,30 +792,31 @@
       });
       if (correct === 4) {
         if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
-        setTimeout(function() { alert('✓ Correct! Red = danger, Green = success, Blue = trust, Yellow = warning.'); nextChallenge(); }, 400);
+        setTimeout(function () { alert('✓ Correct! Red = danger, Green = success, Blue = trust, Yellow = warning.'); nextChallenge(); }, 400);
       } else {
         if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
-        alert('❌ Not quite right. Think about common color meanings: traffic lights, alerts, brand colours.');
+        alert('❌ Not quite right.\n\nHint: Think traffic lights, alerts, and brand colours.');
       }
     }
 
     function resetChallenge3() {
-      document.querySelectorAll('#challenge3 .drop-target').forEach(function(t) {
+      document.querySelectorAll('#challenge3 .drop-target').forEach(function (t) {
         var key = t.getAttribute('data-color-target');
-        if (key === 'danger') t.innerHTML = '<p style="font-weight:bold;color:var(--error);margin-bottom:5px;">⚠️ Delete/Dangerous Action</p><p style="font-size:12px;color:var(--text-secondary);">Alert users to critical actions</p>';
+        if (key === 'danger')  t.innerHTML = '<p style="font-weight:bold;color:var(--error);margin-bottom:5px;">⚠️ Delete/Dangerous Action</p><p style="font-size:12px;color:var(--text-secondary);">Alert users to critical actions</p>';
         else if (key === 'success') t.innerHTML = '<p style="font-weight:bold;color:var(--success);margin-bottom:5px;">✓ Success Message</p><p style="font-size:12px;color:var(--text-secondary);">Confirm positive actions</p>';
         else if (key === 'trust') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🔒 Trust/Professional</p><p style="font-size:12px;color:var(--text-secondary);">Build confidence</p>';
-        else t.innerHTML = '<p style="font-weight:bold;color:var(--warning);margin-bottom:5px;">⏱️ Warning/Attention</p><p style="font-size:12px;color:var(--text-secondary);">Draw attention gently</p>';
+        else                   t.innerHTML = '<p style="font-weight:bold;color:var(--warning);margin-bottom:5px;">⏱️ Warning/Attention</p><p style="font-size:12px;color:var(--text-secondary);">Draw attention gently</p>';
         t.style.borderColor = '';
         t.style.background = 'rgba(61,139,253,0.1)';
       });
     }
 
+    /* ── Challenge 4 ── */
     function checkChallenge4() {
       var orders = document.querySelectorAll('#challenge4 .drop-target-order');
       var correct = 0;
       var correctOrder = ['MAIN HEADLINE', 'Call to Action', 'Small Logo', 'Footer Text'];
-      orders.forEach(function(o, i) {
+      orders.forEach(function (o, i) {
         if (o.textContent.includes(correctOrder[i])) {
           correct++;
           o.style.borderColor = '#2ecc71';
@@ -664,16 +826,16 @@
       });
       if (correct === 4) {
         if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
-        setTimeout(function() { alert('✓ Perfect! Headline first, then CTA, logo, finally footer.'); completeChallenge(); }, 400);
+        setTimeout(function () { alert('✓ Perfect! Headline first, then CTA, logo, finally footer.'); completeChallenge(); }, 400);
       } else {
         if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
-        alert('❌ Not quite. The main headline grabs attention first, then the CTA, then secondary elements.');
+        alert('❌ Not quite.\n\nHint: The main headline grabs attention first, then the CTA, then secondary elements.');
       }
     }
 
     function resetChallenge4() {
-      document.querySelectorAll('#challenge4 .drop-target-order').forEach(function(t, i) {
-        var labels = ['1️⃣ MOST Important', '2️⃣', '3️⃣', '4️⃣ LEAST Important'];
+      var labels = ['1️⃣ MOST Important', '2️⃣', '3️⃣', '4️⃣ LEAST Important'];
+      document.querySelectorAll('#challenge4 .drop-target-order').forEach(function (t, i) {
         t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);">' + labels[i] + '</p>';
         t.style.borderColor = '';
         t.style.background = 'rgba(61,139,253,0.1)';
