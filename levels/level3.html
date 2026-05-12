@@ -138,7 +138,7 @@
           <strong>Colors evoke emotions and guide user attention.</strong>
         </p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr gap 15px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
           <div style="padding: 12px; background: rgba(255, 51, 102, 0.2); border-left: 3px solid #ff3366;">
             <p style="color: #ff3366; font-weight: bold;">Red</p>
             <p style="color: var(--text-secondary); font-size: 13px;">Energy, urgency, danger (use for alerts)</p>
@@ -297,18 +297,10 @@
           <div style="border: 2px dashed var(--accent-cyan); border-radius: 8px; padding: 20px;">
             <p style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 15px;">🎨 COLORS</p>
             <div id="draggable-colors" style="display: flex; flex-direction: column; gap: 10px;">
-              <div class="draggable-item" draggable="true" data-color="red" style="padding: 12px; background: #ff3366; border: 2px solid #ff3366; border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">
-                RED
-              </div>
-              <div class="draggable-item" draggable="true" data-color="green" style="padding: 12px; background: var(--success); border: 2px solid var(--success); border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">
-                GREEN
-              </div>
-              <div class="draggable-item" draggable="true" data-color="blue" style="padding: 12px; background: var(--accent-cyan); border: 2px solid var(--accent-cyan); border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">
-                BLUE/CYAN
-              </div>
-              <div class="draggable-item" draggable="true" data-color="yellow" style="padding: 12px; background: var(--accent-pink); border: 2px solid var(--accent-pink); border-radius: 4px; cursor: grab; color: #1a1428; font-weight: bold; text-align: center;">
-                YELLOW
-              </div>
+              <div class="draggable-item" draggable="true" data-color="red" style="padding: 12px; background: #ff3366; border: 2px solid #ff3366; border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">RED</div>
+              <div class="draggable-item" draggable="true" data-color="green" style="padding: 12px; background: var(--success); border: 2px solid var(--success); border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">GREEN</div>
+              <div class="draggable-item" draggable="true" data-color="blue" style="padding: 12px; background: var(--accent-cyan); border: 2px solid var(--accent-cyan); border-radius: 4px; cursor: grab; color: white; font-weight: bold; text-align: center;">BLUE/CYAN</div>
+              <div class="draggable-item" draggable="true" data-color="yellow" style="padding: 12px; background: var(--accent-pink); border: 2px solid var(--accent-pink); border-radius: 4px; cursor: grab; color: #1a1428; font-weight: bold; text-align: center;">YELLOW</div>
             </div>
           </div>
 
@@ -421,6 +413,278 @@
   </div>
 
   <script src="../js/utils.js"></script>
+
+  <script>
+    var currentChallenge = 1;
+
+    function showQuiz() {
+      document.getElementById('lecture-section').style.display = 'none';
+      document.getElementById('quiz-section').style.display = 'block';
+      updateProgressText();
+      setupDragDrop();
+    }
+
+    function updateProgressText() {
+      var names = [
+        'Button Shape Sorter',
+        'Font Matcher',
+        'Color Psychology Sorter',
+        'Visual Hierarchy Builder'
+      ];
+      var el = document.getElementById('progress-text');
+      if (el) el.textContent = 'Challenge ' + currentChallenge + ' of 4: ' + names[currentChallenge - 1];
+      var fill = document.getElementById('progress-fill');
+      if (fill) fill.style.width = ((currentChallenge - 1) * 25) + '%';
+    }
+
+    function nextChallenge() {
+      var current = document.getElementById('challenge' + currentChallenge);
+      if (current) current.style.display = 'none';
+      currentChallenge++;
+      if (currentChallenge <= 4) {
+        var next = document.getElementById('challenge' + currentChallenge);
+        if (next) next.style.display = 'block';
+        updateProgressText();
+      }
+    }
+
+    function completeChallenge() {
+      showResults(100);
+    }
+
+    function showResults(percentage) {
+      document.getElementById('quiz-section').style.display = 'none';
+      document.getElementById('results-section').style.display = 'block';
+
+      var passed = percentage >= 70;
+      if (typeof SoundManager !== 'undefined') {
+        if (passed) SoundManager.playPassed(); else SoundManager.playFailed();
+      }
+
+      document.getElementById('result-title').textContent = passed ? '🎉 Level Complete!' : '⚠️ Keep Practicing!';
+      document.getElementById('result-title').style.color = passed ? 'var(--success)' : 'var(--error)';
+      document.getElementById('result-message').textContent = passed
+        ? 'You\'ve mastered design principles!'
+        : 'Review the challenges and try again.';
+      document.getElementById('final-score').textContent = percentage + '%';
+      document.getElementById('final-score').style.color = passed ? 'var(--success)' : 'var(--error)';
+      document.getElementById('result-feedback').textContent = passed
+        ? 'Excellent! You understand button design, typography, color psychology, and visual hierarchy.'
+        : 'Not quite there yet! Review the lecture material and try again.';
+
+      if (typeof StorageManager !== 'undefined') {
+        StorageManager.completeLevelQuiz('level3', percentage);
+      }
+    }
+
+    // ── Drag & Drop ──
+    var dragInitialized = false;
+
+    function setupDragDrop() {
+      if (dragInitialized) return;
+      dragInitialized = true;
+
+      var quizSection = document.getElementById('quiz-section');
+      if (!quizSection) return;
+
+      quizSection.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('draggable-item')) {
+          e.target.style.opacity = '0.5';
+          e.dataTransfer.setData('text/plain', JSON.stringify({
+            text: e.target.textContent.trim(),
+            html: e.target.outerHTML
+          }));
+        }
+      });
+
+      quizSection.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('draggable-item')) {
+          e.target.style.opacity = '1';
+        }
+      });
+
+      quizSection.addEventListener('dragover', function(e) {
+        var target = e.target.closest('.drop-target, .drop-target-order');
+        if (target) {
+          e.preventDefault();
+          target.style.background = 'rgba(61,139,253,0.3)';
+          target.style.borderColor = '#00d9ff';
+        }
+      });
+
+      quizSection.addEventListener('dragleave', function(e) {
+        var target = e.target.closest('.drop-target, .drop-target-order');
+        if (target && !target.contains(e.relatedTarget)) {
+          target.style.background = 'rgba(61,139,253,0.1)';
+          target.style.borderColor = '';
+        }
+      });
+
+      quizSection.addEventListener('drop', function(e) {
+        e.preventDefault();
+        var target = e.target.closest('.drop-target, .drop-target-order');
+        if (!target) return;
+
+        target.style.background = 'rgba(61,139,253,0.1)';
+        target.style.borderColor = '';
+
+        try {
+          var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+          var temp = document.createElement('div');
+          temp.innerHTML = data.html;
+          var clone = temp.firstChild;
+          clone.draggable = false;
+          clone.style.cursor = 'default';
+
+          if (target.classList.contains('drop-target-order')) {
+            var label = target.querySelector('p') ? target.querySelector('p').textContent : '';
+            target.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);">' + label + '</p>';
+          } else {
+            target.innerHTML = '';
+          }
+          target.appendChild(clone);
+        } catch (err) {
+          console.warn('Drop error:', err);
+        }
+      });
+    }
+
+    // ── Challenge Check Functions ──
+    function checkChallenge1() {
+      var targets = document.querySelectorAll('#challenge1 .drop-target');
+      var correct = 0;
+      var answers = { 'login': 'Square Button', 'cta': 'Rounded Button', 'decorator': 'Heart' };
+      targets.forEach(function(t) {
+        var key = t.getAttribute('data-target');
+        if (t.textContent.includes(answers[key])) {
+          correct++;
+          t.style.borderColor = '#2ecc71';
+        } else {
+          t.style.borderColor = '#e74c3c';
+        }
+      });
+      if (correct === 3) {
+        if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
+        setTimeout(function() { alert('✓ Correct! Square buttons suit login forms, rounded for CTAs, heart for decorators.'); nextChallenge(); }, 400);
+      } else {
+        if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
+        alert('❌ Not quite right. Hint: Login forms use Square buttons, CTAs use Rounded, likes/favorites use Heart shapes.');
+      }
+    }
+
+    function resetChallenge1() {
+      document.querySelectorAll('#challenge1 .drop-target').forEach(function(t) {
+        var key = t.getAttribute('data-target');
+        if (key === 'login') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🔐 Login Form</p><p style="font-size:12px;">Drop appropriate button here</p>';
+        else if (key === 'cta') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🎯 Call-to-Action</p><p style="font-size:12px;">Drop appropriate button here</p>';
+        else t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">✨ Decorator/Like</p><p style="font-size:12px;">Drop appropriate button here</p>';
+        t.style.borderColor = '';
+        t.style.background = 'rgba(61,139,253,0.1)';
+      });
+    }
+
+    function checkChallenge2() {
+      var targets = document.querySelectorAll('#challenge2 .drop-target');
+      var correct = 0;
+      var answers = { 'web': 'SANS-SERIF', 'poster': 'SANS-SERIF', 'special': 'CURSIVE' };
+      targets.forEach(function(t) {
+        var key = t.getAttribute('data-font-target');
+        if (t.textContent.includes(answers[key])) {
+          correct++;
+          t.style.borderColor = '#2ecc71';
+        } else {
+          t.style.borderColor = '#e74c3c';
+        }
+      });
+      if (correct === 3) {
+        if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
+        setTimeout(function() { alert('✓ Correct! Sans-serif for screens and posters, cursive for logos and special uses.'); nextChallenge(); }, 400);
+      } else {
+        if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
+        alert('❌ Not quite right. Hint: Posters need bold readable fonts (sans-serif), logos can use cursive.');
+      }
+    }
+
+    function resetChallenge2() {
+      document.querySelectorAll('#challenge2 .drop-target').forEach(function(t) {
+        var key = t.getAttribute('data-font-target');
+        if (key === 'web') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🌐 Web & UI Design</p><p style="font-size:12px;color:var(--text-secondary);">Readable on screens</p>';
+        else if (key === 'poster') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">📢 Posters & Bold Display</p><p style="font-size:12px;color:var(--text-secondary);">Must be visible from distance</p>';
+        else t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">✨ Logos & Special Moments</p><p style="font-size:12px;color:var(--text-secondary);">Artistic & decorative</p>';
+        t.style.borderColor = '';
+        t.style.background = 'rgba(61,139,253,0.1)';
+      });
+    }
+
+    function checkChallenge3() {
+      var targets = document.querySelectorAll('#challenge3 .drop-target');
+      var correct = 0;
+      var answers = { 'danger': 'RED', 'success': 'GREEN', 'trust': 'BLUE/CYAN', 'warning': 'YELLOW' };
+      targets.forEach(function(t) {
+        var key = t.getAttribute('data-color-target');
+        if (t.textContent.includes(answers[key])) {
+          correct++;
+          t.style.borderColor = '#2ecc71';
+        } else {
+          t.style.borderColor = '#e74c3c';
+        }
+      });
+      if (correct === 4) {
+        if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
+        setTimeout(function() { alert('✓ Correct! Red = danger, Green = success, Blue = trust, Yellow = warning.'); nextChallenge(); }, 400);
+      } else {
+        if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
+        alert('❌ Not quite right. Think about common color meanings: traffic lights, alerts, brand colours.');
+      }
+    }
+
+    function resetChallenge3() {
+      document.querySelectorAll('#challenge3 .drop-target').forEach(function(t) {
+        var key = t.getAttribute('data-color-target');
+        if (key === 'danger') t.innerHTML = '<p style="font-weight:bold;color:var(--error);margin-bottom:5px;">⚠️ Delete/Dangerous Action</p><p style="font-size:12px;color:var(--text-secondary);">Alert users to critical actions</p>';
+        else if (key === 'success') t.innerHTML = '<p style="font-weight:bold;color:var(--success);margin-bottom:5px;">✓ Success Message</p><p style="font-size:12px;color:var(--text-secondary);">Confirm positive actions</p>';
+        else if (key === 'trust') t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);margin-bottom:5px;">🔒 Trust/Professional</p><p style="font-size:12px;color:var(--text-secondary);">Build confidence</p>';
+        else t.innerHTML = '<p style="font-weight:bold;color:var(--warning);margin-bottom:5px;">⏱️ Warning/Attention</p><p style="font-size:12px;color:var(--text-secondary);">Draw attention gently</p>';
+        t.style.borderColor = '';
+        t.style.background = 'rgba(61,139,253,0.1)';
+      });
+    }
+
+    function checkChallenge4() {
+      var orders = document.querySelectorAll('#challenge4 .drop-target-order');
+      var correct = 0;
+      var correctOrder = ['MAIN HEADLINE', 'Call to Action', 'Small Logo', 'Footer Text'];
+      orders.forEach(function(o, i) {
+        if (o.textContent.includes(correctOrder[i])) {
+          correct++;
+          o.style.borderColor = '#2ecc71';
+        } else {
+          o.style.borderColor = '#e74c3c';
+        }
+      });
+      if (correct === 4) {
+        if (typeof SoundManager !== 'undefined') SoundManager.playCorrect();
+        setTimeout(function() { alert('✓ Perfect! Headline first, then CTA, logo, finally footer.'); completeChallenge(); }, 400);
+      } else {
+        if (typeof SoundManager !== 'undefined') SoundManager.playWrong();
+        alert('❌ Not quite. The main headline grabs attention first, then the CTA, then secondary elements.');
+      }
+    }
+
+    function resetChallenge4() {
+      document.querySelectorAll('#challenge4 .drop-target-order').forEach(function(t, i) {
+        var labels = ['1️⃣ MOST Important', '2️⃣', '3️⃣', '4️⃣ LEAST Important'];
+        t.innerHTML = '<p style="font-weight:bold;color:var(--accent-cyan);">' + labels[i] + '</p>';
+        t.style.borderColor = '';
+        t.style.background = 'rgba(61,139,253,0.1)';
+      });
+    }
+  </script>
+
   <script src="level3.js"></script>
+
+  <footer style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.3); border-top: 1px solid var(--accent-cyan); color: white; font-size: 12px; font-weight: bold; box-sizing: border-box; z-index: 999;">
+    © 2026 Andres & Lomboy - UxPlore Buster
+  </footer>
 </body>
 </html>
