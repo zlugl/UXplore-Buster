@@ -9,47 +9,82 @@ const app = express();
 const PORT = 5000;
 const HOST = '0.0.0.0';
 const JWT_SECRET = process.env.JWT_SECRET || 'uxplore-buster-secret-2026';
-const MONGODB_URI = process.env.MONGODB_URI;
+
+let MONGODB_URI = process.env.MONGODB_URI || '';
+if (MONGODB_URI && !MONGODB_URI.includes('/uxplore')) {
+
+  MONGODB_URI = MONGODB_URI.replace(
+    /(\?|$)/,
+    (match) => '/uxplore' + (match === '?' ? '?' : '')
+  );
+}
 
 app.use(express.json());
 
 mongoose.set('bufferCommands', false);
 
 let dbConnected = false;
+let dbError = null;
 
-if (MONGODB_URI) {
-  mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 8000,
-    connectTimeoutMS: 8000,
-    socketTimeoutMS: 30000,
-    maxPoolSize: 10
-  })
-    .then(() => {
-      dbConnected = true;
-      console.log('Connected to MongoDB');
-    })
-    .catch(err => console.error('MongoDB connection error:', err.message));
+async function connectDB() {
+  if (!MONGODB_URI) {
+    console.warn('MONGODB_URI not set — running without database');
+    return;
+  }
 
-  mongoose.connection.on('connected', () => { dbConnected = true; });
-  mongoose.connection.on('disconnected', () => {
+  const options = {
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    retryWrites: true,
+    w: 'majority',
+  };
+
+  try {
+    console.log('Cononnecting to MongoDB...');
+    await mongoose.connect(MONGODB_URI, options);
+    dbConnected = true;
+    dbError = null;
+    console.log('Connected to MongoDB');
+  } catch (err) {
     dbConnected = false;
-    console.warn('MongoDB disconnected, attempting to reconnect...');
-  });
-  mongoose.connection.on('error', err => console.error('MongoDB error:', err.message));
-} else {
-  console.warn('MONGODB_URI not set — running without database');
+    dbError = err.message;
+    console.error('mngoDB connection failed:', err.message);
+    setTimeout(connectDB, 10000);
+  }
 }
+
+mongoose.connection.on('connected', () => {
+  dbConnected = true;
+  dbError = null;
+  console.log('mongoDB connected');
+});
+
+mongoose.connection.on('disconnected', () => {
+  dbConnected = false;
+  console.warn('mongoDB disconnected — retrying...');
+  setTimeout(connectDB, 5000);
+});
+
+mongoose.connection.on('error', (err) => {
+  dbConnected = false;
+  dbError = err.message;
+  console.error('mongoDB error:', err.message);
+});
+
+
+connectDB();
 
 function requireDb(req, res, next) {
   if (!dbConnected) {
-    return res.status(503).json({
-      error: 'Database is not connected. Please check your MongoDB Atlas connection and ensure all IPs are whitelisted (0.0.0.0/0).'
-    });
+    const msg = dbError
+      ? `Database connection error: ${dbError}`
+      : 'Database is not connected. Please check your MongoDB Atlas connection and ensure all IPs are whitelisted (0.0.0.0/0).';
+    return res.status(503).json({ error: msg });
   }
   next();
 }
-
-
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -92,6 +127,9 @@ function formatProfile(p) {
     levelProgress: p.levelProgress
   };
 }
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, db: dbConnected, error: dbError || null });
+});
 
 app.post('/api/auth/register', requireDb, async (req, res) => {
   try {
@@ -116,6 +154,7 @@ app.post('/api/auth/register', requireDb, async (req, res) => {
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, user: { id: user._id, username: user.username }, token });
   } catch (err) {
+    console.error('Register error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -123,6 +162,7 @@ app.post('/api/auth/register', requireDb, async (req, res) => {
 app.post('/api/auth/login', requireDb, async (req, res) => {
   try {
     const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
     const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
     if (!user) return res.status(400).json({ error: 'Invalid username or password' });
     const valid = await bcrypt.compare(password, user.password);
@@ -150,6 +190,7 @@ app.post('/api/auth/login', requireDb, async (req, res) => {
       profile: formatProfile(profile)
     });
   } catch (err) {
+    console.error('Login error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -291,7 +332,7 @@ app.use(express.static(path.join(__dirname), {
 
 app.use((req, res) => {
   const filePath = path.join(__dirname, decodeURIComponent(req.url.split('?')[0]));
-  fs.readFile(filePath, (err, data) => {
+  fs.readFile(filePath, (err) => {
     if (err) { res.status(404).sendFile(path.join(__dirname, 'index.html')); return; }
     res.sendFile(filePath);
   });
